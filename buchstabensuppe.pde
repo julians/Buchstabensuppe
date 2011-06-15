@@ -2,10 +2,10 @@ import processing.opengl.*;
 import geomerative.*;
 import com.getflourish.stt.*;
 import traer.physics.*;
-import ddf.minim.*;
+import codeanticode.glgraphics.*;
 
 ParticleSystem emitter;
-int numParticles = 200;
+int numParticles = 300;
 
 ArrayList particles;
 String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -14,14 +14,17 @@ RFont font;
 STT stt;
 String result;
 
-boolean dd = true;
+boolean dome = false;
 
-Minim minim;
-AudioPlayer robot;
+boolean dd = true;
 
 void setup ()
 {
-    size(800, 800, OPENGL);
+    if (dome) {
+       size(1920, 1920, GLConstants.GLGRAPHICS);   
+    } else {
+       size(800, 800, GLConstants.GLGRAPHICS);
+    }
 
     RG.init(this);
     font = new RFont("lucon.ttf", 32, RFont.CENTER);
@@ -32,19 +35,23 @@ void setup ()
     initParticles();
     
     stt = new STT(this, true);
-    stt.debug = true;
-    stt.language = "de"; 
+    stt.enableDebug();
+    stt.setLanguage("de");
     stt.setThreshold(8.0);
-    
-    minim = new Minim(this);
 }
 
 void draw ()
 {
+      
+    // GLGraphics renderer = (GLGraphics)g;
+    // renderer.beginGL();
+    
     background(0);
     lights();
     displayParticles();
     // println(frameRate);
+    
+    // renderer.endGL();
 }
 
 void initParticles () 
@@ -63,7 +70,7 @@ void createParticles() {
             a = emitter.makeParticle(1, random(width), random(height), 0);
         }
         particles.add(new CharParticle(chars.charAt((int)random(chars.length()))));
-        a.velocity().set(random(-1, 1), random(-1, 1), random(-1, 1));
+        a.velocity().set(random(-0.5, 0.3), random(-0.5, 0.3), random(-0.3, 0.3));
         for (int j = 0; j < emitter.numberOfParticles() - 1; j++) {
             Particle b = emitter.getParticle(j);
             // emitter.makeAttraction(a, b, -20, 10);
@@ -93,7 +100,8 @@ void displayParticles ()
         translate(p.position().x(), p.position().y(), p.position().z());
         rotate(angle);
         rotate(-HALF_PI);
-        fill(255, 10 + map(p.position().z(), -1000, 1000, 0, 255));
+        float bla =  10 + map(p.position().z(), -1000, 1000, 0, 255);
+        fill(bla, bla, bla);
         cp.draw();
         popMatrix();
         // cp.update();
