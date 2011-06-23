@@ -4,6 +4,8 @@ import com.getflourish.stt.*;
 import traer.physics.*;
 import codeanticode.glgraphics.*;
 
+import java.util.Map;
+
 ParticleSystem emitter;
 int numParticles = 300;
 
@@ -17,6 +19,8 @@ String result;
 boolean dome = false;
 
 boolean dd = true;
+
+NGramGetter nGramGetter;
 
 void setup ()
 {
@@ -35,9 +39,12 @@ void setup ()
     initParticles();
     
     stt = new STT(this, true);
-    stt.enableDebug();
+    // stt.enableDebug();
     stt.setLanguage("de");
     stt.setThreshold(8.0);
+    
+    nGramGetter = new NGramGetter();
+    Map hui = nGramGetter.getNGram("waschmittelwerbung");
 }
 
 void draw ()
