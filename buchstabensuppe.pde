@@ -20,7 +20,7 @@ boolean dome = false;
 
 boolean dd = true;
 
-NGramGetter nGramGetter;
+ThreadedNGramGetter nGramGetter;
 
 void setup ()
 {
@@ -43,8 +43,14 @@ void setup ()
     stt.setLanguage("de");
     stt.setThreshold(8.0);
     
-    nGramGetter = new NGramGetter();
-    Map hui = nGramGetter.getNGram("waschmittelwerbung");
+    nGramGetter = new ThreadedNGramGetter(this);
+    nGramGetter.getNGram("waschmittelwerbung");
+}
+
+void nGramFound (NGram ngram)
+{
+    println("huhu, ngram!");
+    println(ngram.word);
 }
 
 void draw ()

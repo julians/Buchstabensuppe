@@ -1,26 +1,32 @@
-import java.util.Map;
-import java.util.HashMap;
+import java.net.URL;
+import java.util.Scanner;
 
 class NGramGetter
 {
-    Jedis r;
+    String baseURL = "http://julianstahnke.com/fhp/ngram/?word=";
     
     NGramGetter ()
     {
-        this.r = new Jedis("localhost");
     }
-    public Map getNGram(String word)
+    public NGram getNGram(String word)
     {
-        // Don’t you just loooooove Java?
-        Map mp = r.hgetAll("word:"+word);
-        Map hm = new HashMap();
-        
-        Iterator it = mp.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pairs = (Map.Entry) it.next();
-            // TODO: Mix in totals for the years
-            hm.put(Integer.parseInt((String) pairs.getKey()), Integer.parseInt((String) pairs.getValue()));
+        try {
+            URL url = new URL(baseURL + word);
+            Scanner scanner = new Scanner(url.openStream()).useDelimiter(";");
+            String success = scanner.next();
+            String return_word = scanner.next();
+            Scanner valueScanner = new Scanner(scanner.next()).useDelimiter(",");
+            int[] values = new int[509];
+            int i = 0;
+            while (valueScanner.hasNext()) {
+                values[i] = valueScanner.nextInt();
+                i++;
+            }
+            return new NGram(return_word, success == "1", values);
+        } catch (MalformedURLException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
         }
-        return hm;
     }
 }
