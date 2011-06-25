@@ -8,6 +8,7 @@ class NGramGetterThread extends Thread
     PApplet p;
     String word;
     Method nGramFoundEvent;
+    //String baseURL = "http://misc.local/kuppel/?word=";
     String baseURL = "http://julianstahnke.com/fhp/ngram/?word=";
     
     NGramGetterThread (PApplet p, String word)
@@ -38,13 +39,19 @@ class NGramGetterThread extends Thread
                 String success = scanner.next();
                 String return_word = scanner.next();
                 Scanner valueScanner = new Scanner(scanner.next()).useDelimiter(",");
-                int[] values = new int[509];
+                int[] raw_values = new int[509];
+                float[] values = new float[509];
                 int i = 0;
                 while (valueScanner.hasNext()) {
-                    values[i] = valueScanner.nextInt();
+                    String j = valueScanner.next();
+                    println(j);
+                    String[] v = j.split(":");
+                    println(v);
+                    raw_values[i] = Integer.parseInt(v[0]);
+                    values[i] = Float.valueOf(v[1]).floatValue();
                     i++;
                 }
-                ngram = new NGram(this.word, success == "1", values);       
+                ngram = new NGram(this.word, success == "1", values, raw_values);       
             } catch (MalformedURLException e) {
 
             } catch (IOException e) {

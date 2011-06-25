@@ -50,7 +50,9 @@ void setup ()
 void nGramFound (NGram ngram)
 {
     println("huhu, ngram!");
+    println(ngram.values);
     println(ngram.word);
+    println(ngram.getValueForYear(2008));
 }
 
 void draw ()

@@ -16,13 +16,19 @@ class NGramGetter
             String success = scanner.next();
             String return_word = scanner.next();
             Scanner valueScanner = new Scanner(scanner.next()).useDelimiter(",");
-            int[] values = new int[509];
+            int[] raw_values = new int[509];
+            float[] values = new float[509];
             int i = 0;
             while (valueScanner.hasNext()) {
-                values[i] = valueScanner.nextInt();
+                String j = valueScanner.next();
+                println(j);
+                String[] v = j.split(":");
+                println(v);
+                raw_values[i] = Integer.parseInt(v[0]);
+                values[i] = Float.valueOf(v[1]).floatValue();
                 i++;
             }
-            return new NGram(return_word, success == "1", values);
+            return new NGram(word, success == "1", values, raw_values);
         } catch (MalformedURLException e) {
             return null;
         } catch (IOException e) {
