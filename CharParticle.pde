@@ -8,6 +8,7 @@ class CharParticle
     char character;
     float spin = random(-1, 1);
     int rx, ry;
+    boolean flat = true;
 
     CharParticle (char c) {
       this.character = c;
@@ -25,6 +26,10 @@ class CharParticle
 
     void draw() 
     {   
+      if (flat) {
+        text(character, 0, 0);
+      } else {
+        
         pushMatrix();
       spin -= 0.001;
 
@@ -50,6 +55,7 @@ class CharParticle
       translate(0, 0, 3);
       m1.draw();
       popMatrix();
+      }
   }
       
     void resetRotation() 
