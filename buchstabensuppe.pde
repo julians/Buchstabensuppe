@@ -61,9 +61,7 @@ void setup ()
 void nGramFound (NGram ngram)
 {
     println("huhu, ngram!");
-    println(ngram.values);
     println(ngram.word);
-    println(ngram.getValueForYear(2008));
 }
 
 void draw ()
@@ -81,7 +79,6 @@ void draw ()
   gl.glBlendFunc(GL.GL_SRC_ALPHA,GL.GL_ONE);
   
   fadeToColor(gl, 0, 0, 0, 0.09);
-  
   pgl.endGL();
   
   lights();
@@ -104,7 +101,7 @@ void createParticles() {
             a = emitter.makeParticle(1, random(width), random(height), 0);
         }
         particles.add(new CharParticle(chars.charAt((int)random(chars.length()))));
-        a.velocity().set(random(-0.5, 0.3), random(-0.5, 0.3), random(1, 10));
+        a.velocity().set(random(-0.5, 0.3), random(-0.5, 0.3), random(0, 1));
         for (int j = 0; j < emitter.numberOfParticles() - 1; j++) {
             Particle b = emitter.getParticle(j);
             // emitter.makeAttraction(a, b, -20, 10);
@@ -148,19 +145,14 @@ void displayParticles ()
 }
 
 void formWord(String s) {
-    for (int b = 0; b < emitter.numberOfSprings(); b++) {
-        emitter.removeSpring(b);
-    }
     char [] a = s.toCharArray();
-    Particle prev = null;
     for (int i = 0; i < a.length; i++) {
         int index = getIndexForChar(a[i]);
         Particle p = emitter.getParticle(index);
-        p.velocity().add(0, 0, 0.0001);
-        if (prev != null) {
-            emitter.makeSpring(p, prev, 0.2, 0.1, 20);
-        }
-        prev = p;
+        // Geiler Effekt, Rakete los!
+        // p.velocity().add(0, 0, 10);
+        
+        p.position().set(i * 100, height / 2, 100);
     }
 }
 

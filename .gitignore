@@ -1,2 +1,15 @@
 .DS_Store
 data/2011*
+compiled/buchstabensuppe.java
+
+compiled/buchstabensuppe.class
+
+compiled/buchstabensuppe$ThreadedNGramGetter.class
+
+compiled/buchstabensuppe$NGramGetterThread.class
+
+compiled/buchstabensuppe$NGramGetter.class
+
+compiled/buchstabensuppe$NGram.class
+
+compiled/buchstabensuppe$CharParticle.class
