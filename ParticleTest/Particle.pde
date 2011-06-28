@@ -8,8 +8,10 @@ class Particle
     float alpha;
     float mass;
     boolean alive;
-    int age;
-    int span;
+    float age;
+    float span;
+    float progress;
+    ArrayList<Behavior> behaviors;
     
     Particle () 
     {
@@ -25,7 +27,9 @@ class Particle
         this.mass = random(0.1, 1);
         this.alive = true;
         this.age = 0;
-        this.span = (int) random(100);
+        this.span = 1 + (int) random(100);
+        this.behaviors = new ArrayList<Behavior>();
+        this.progress = 0;
     }
     void init (PVector pos, PVector vel) 
     {
@@ -34,30 +38,14 @@ class Particle
     void update () 
     {
         age++;
+        progress = age / span;
         if (age > span) die();
         
         // update position
         position.add(velocity);
-
-        // bounce of edges
-        if (position.x < 0) {
-            position.x = 0;
-            velocity.x *= -1;
-        }
-        else if (position.x > width) {
-            position.x = width;
-            velocity.x *= -1;
-        }
-
-        if (position.y < 0) {
-            position.y = 0;
-            velocity.y *= -1;
-        }
-        else if (position.y > height) {
-            position.y = height;
-            velocity.y *= -1;
-        }
-        // todo: z-space handling
+        
+        // apply behaviors
+        for (int i = 0; i < behaviors.size(); i++) behaviors.get(i).apply(this);
         
         // update x, y, z to fit vectors
         updatePosition();
@@ -97,4 +85,15 @@ class Particle
         velocity.set(vx, vy, vz);
         updateVelocity();
     }
+    void setSize (float s) 
+    {
+        this.size = s;
+    }
+    // Behaviors
+    void addBehavior (Behavior b) {
+        this.behaviors.add(b);
+    }
+
+    
+    
 }

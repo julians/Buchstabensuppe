@@ -1,22 +1,51 @@
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 class Emitter 
 {
     int maxParticles = 5000;
     ArrayList<Particle> particles;
     ArrayList<Force> forces;
     float gravity;
-    PVector globalVelocity;
+    PVector globalVelocity; 
+    Method particleDrawEvent;
+    PApplet p5;
 
-    Emitter() 
+    Emitter(PApplet p5) 
     {
+        this.p5 = p5;
         particles = new ArrayList<Particle>(maxParticles);
         forces = new ArrayList<Force>();
         this.globalVelocity = new PVector();
+        
+        // check if there is a custom draw function
+        try {
+			this.particleDrawEvent = p5.getClass().getMethod("drawParticle", Particle.class);
+		} catch (SecurityException e) {
+			System.out.println("security error: ");
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			System.out.println("Info: Use drawParticle(Particle p) instead of looping through getParticles() on your own.");
+		} catch (IllegalArgumentException e) {
+			System.out.println("illegal args: ");
+			e.printStackTrace();
+		}
+    }
+    void update() 
+    {
+        for (int i = 0; i < particles.size(); i++) {
+            Particle p = particles.get(i);
+            if (p.alive) {
+                if (globalVelocity.mag() != 0) p.addVelocity(globalVelocity);
+                p.addVelocity(0, gravity * p.age, 0);
+                p.update(); 
+            } else {
+                removeParticle(p);
+            }
+        }
     }
     void updateAndDraw() 
     {
-        stroke(255);
-        fill(255);
-
         for (int i = 0; i < particles.size(); i++) {
             Particle p = particles.get(i);
             if (p.alive) {
@@ -29,9 +58,23 @@ class Emitter
             }
         }
     }
-    void drawParticle(Particle p) 
-    {
-        point(p.x, p.y);
+    public void drawParticle(Particle p) 
+    {   
+        // uses the drawParticle method in the main program
+        if (this.particleDrawEvent != null) {
+            try {
+                this.particleDrawEvent.invoke(p5, p);
+            } catch (IllegalArgumentException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		} catch (IllegalAccessException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		} catch (InvocationTargetException e) {
+                // TODO Auto-generated catch block
+    			e.printStackTrace();
+            }
+        }
     }
     void addParticles(float x, float y, float z, int count)
     {
@@ -39,15 +82,12 @@ class Emitter
     }
     Particle addParticle (float x, float y, float z, float vx, float vy, float vz) 
     {
-        Particle p = new Particle();
-        if (particles.size() < maxParticles) {
-            p.init(x, y, z, vx, vy, vz);
-            particles.add(p);
-            return p;
-        } else {
-            // todo: kill old particle or wait?
-        }
-        return null;
+        Particle particle = new Particle();
+        return this.addParticle(particle, x, y, z, vx, vy, vz);
+    }
+    Particle addParticle (Particle p, float x, float y, float z) 
+    {
+        return this.addParticle(p, x, y, z, 0, 0, 0);
     }
     Particle addParticle (float x, float y, float z) 
     {
@@ -56,6 +96,44 @@ class Emitter
     Particle addParticle () 
     {
         return this.addParticle(random(width), random(height), 0);
+    }
+    Particle addParticle (Particle particle, float x, float y, float z, float vx, float vy, float vz) 
+    {
+        if (particles.size() < maxParticles) {
+            particle.init(x, y, z, vx, vy, vz);
+            
+            particle.addBehavior(new BoundsOffWalls(100));
+            
+            // We can add Behaviors without making class files
+            
+            // particle.addBehavior(new Behavior() {
+            //    public void apply (Particle p) {
+            //        // bounce of edges left and right
+            //        if (p.position.x < 0) {
+            //            p.position.x = 0;
+            //            p.velocity.x *= -1;
+            //        }
+            //        else if (p.position.x > width) {
+            //            p.position.x = width;
+            //            p.velocity.x *= -1;
+            //        }
+            //        // top and bottom
+            //        if (p.position.y < 0) {
+            //            p.position.y = 0;
+            //            p.velocity.y *= -1;
+            //        }
+            //        else if (p.position.y > height) {
+            //            p.position.y = height;
+            //            p.velocity.y *= -1;
+            //        }
+            //    } 
+            // });
+            particles.add(particle);
+            return particle;
+        } else {
+            // todo: kill old particle or wait?
+        }
+        return null;   
     }
     void removeParticle (Particle p) 
     {
@@ -108,5 +186,18 @@ class Emitter
     void disableGravity () 
     {   
         this.gravity = 0;
+    }
+    
+    // Access to particles
+    ArrayList<Particle> getParticles() 
+    {
+        return particles;
+    }
+    ArrayList<Particle> setSize(float s) 
+    {
+        for (int i = 0; i < particles.size(); i++) {
+            particles.get(i).setSize(s);
+        }
+        return particles;
     }
 }
