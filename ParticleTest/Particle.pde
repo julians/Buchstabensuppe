@@ -55,8 +55,8 @@ class Particle
     {
         alive = false;
     }
-    void randomizeVelocity (float range) {
-        setVelocity(random(-range, range), random(-range, range), random(-range, range));
+    Particle randomizeVelocity (float range) {
+        return setVelocity(random(-range, range), random(-range, range), random(-range, range));
     }
     void addVelocity (float vx, float vy, float vz) {
         this.addVelocity(new PVector(vx, vy, vz));
@@ -80,18 +80,29 @@ class Particle
         position.set(x, y, z);
         updatePosition();
     }
-    void setVelocity (float vx, float vy, float vz) 
+    Particle setVelocity (float vx, float vy, float vz) 
     {
         velocity.set(vx, vy, vz);
         updateVelocity();
+        return this;
     }
     void setSize (float s) 
     {
         this.size = s;
     }
+    Particle setLifeSpan (float s) 
+    {
+        this.span = s;
+        return this;
+    }
     // Behaviors
-    void addBehavior (Behavior b) {
+    Particle addBehavior (Behavior b) {
         this.behaviors.add(b);
+        return this;
+    }
+    Particle removeBehavior (Behavior b) {
+        this.behaviors.remove(b);
+        return this;
     }
 
     

@@ -1,9 +1,12 @@
 import processing.opengl.*;
 import javax.media.opengl.*;
 import geomerative.*;
+import controlP5.*;
 
-Emitter emitter;
+ParticleSystem emitter;
 RFont font;
+ControlP5 controlP5;
+ForceField force, force2;
 
 void setup()
 {
@@ -13,29 +16,46 @@ void setup()
     RG.init(this);
     font = new RFont("lucon.ttf", 32, RFont.CENTER);
     
-    emitter = new Emitter(this);
-    emitter.enableGravity(0.01);
-    emitter.addGlobalVelocity(0, 0, 10);
-    emitter.addParticle(new CharParticle('c'), mouseX, mouseY, 0).randomizeVelocity(1);
+    textFont(createFont("Courier", 12));
+    
+    emitter = new ParticleSystem(this);
+    emitter.enableGravity(0);
+    emitter.addGlobalVelocity(0, 0, 1);
+    force = new ForceField(new PVector (width / 2, height / 2, 0)).setRadius(50).setStrength(100).show();
+    emitter.addForceField(force);
+    force2 = new ForceField(new PVector (width / 4, height / 4, 0)).setRadius(50).setStrength(100).show();
+    emitter.addForceField(force2);
+    
+    // Slider für das ForceField
+    controlP5 = new ControlP5(this);
+    controlP5.addSlider("radius", 0, 1000, 100, 10, 40, 100, 20).setId(1);
+    controlP5.addSlider("strength", -20, 20, 10, 10, 60, 100, 20).setId(2);
+    controlP5.addSlider("ramp", 0, 2, 1, 10, 20, 80, 20).setId(3);
+    
+    controlP5.addSlider("radius2", 0, 1000, 100, 10, 100, 100, 20).setId(4);
+    controlP5.addSlider("strength2", -20, 20, 10, 10, 120, 100, 20).setId(5);
+    controlP5.addSlider("ramp2", 0, 2, 1, 10, 140, 100, 20).setId(6);
 }
 
 void draw()
 {
-    PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
-    GL gl = pgl.beginGL();
-    gl.glEnable( GL.GL_BLEND );
-
-    // Motion Blur!
-    // fadeToColor(gl, 0, 0, 0, 0.05);
     background(0);
-    
-    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE);
-    gl.glDisable(GL.GL_BLEND);
-    pgl.endGL();
+        
+    // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
+    // GL gl = pgl.beginGL();
+    // gl.glEnable( GL.GL_BLEND );
+    // 
+    // // Motion Blur!
+    // // fadeToColor(gl, 0, 0, 0, 0.05);
+    // 
+    // gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE);
+    // gl.glDisable(GL.GL_BLEND);
+    // pgl.endGL();
     
     // Ein Partikel an der Mausposition hinzufügen und zufällige Richtung geben
-    byte surprise = (byte) random(97, 122);
-    emitter.addParticle(new CharParticle(char(surprise)), mouseX, mouseY, 0).randomizeVelocity(1);
+    char surprise = char((byte) random(97, 122));
+    // emitter.addParticle(new CharParticle(surprise), mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BoundsOffWalls(0));
+    emitter.addParticle(new Particle(), mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BounceOffWalls(0)).setLifeSpan(1000);
     emitter.updateAndDraw();
     
     // Man kann auch selbst auf die Partikel zugreifen
@@ -45,10 +65,12 @@ void draw()
     // for (int i = 0; i < particles.size(); i++) {
     //     drawParticle(particles.get(i));
     // }
+    debug();
 }
 
 // Wird automatisch vom Partikelsystem aufgerufen
-void drawParticle (Particle p) {
+void drawParticle (Particle p) 
+{
     fill(255 - p.progress * 255);
     noStroke();
     if (p instanceof CharParticle) {
@@ -59,8 +81,15 @@ void drawParticle (Particle p) {
     }
 }
 
-// OpenGL alternative zu backround(c, c, c, alpha);
-void fadeToColor(GL gl, float r, float g, float b, float speed) {
+void debug () 
+{
+    noStroke();
+    text("particles: " + emitter.getParticleCount(), width - 120, height - 40); 
+    text("framerate: " + (int) frameRate, width - 120, height - 20); 
+}
+// OpenGL Alternative zu backround(c, c, c, alpha);
+void fadeToColor(GL gl, float r, float g, float b, float speed) 
+{
     gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
     gl.glColor4f(r, g, b, speed);
     gl.glBegin(GL.GL_QUADS);
@@ -69,4 +98,27 @@ void fadeToColor(GL gl, float r, float g, float b, float speed) {
     gl.glVertex2f(width, height);
     gl.glVertex2f(0, height);
     gl.glEnd();
+}
+
+void controlEvent(ControlEvent theEvent) {
+  switch(theEvent.controller().id()) {
+    case(1):
+    force.setRadius((int)(theEvent.controller().value()));
+    break;
+    case(2):
+    force.setStrength((int)(theEvent.controller().value()));
+    break;
+    case(3):
+    force.setRamp((int)(theEvent.controller().value()));
+    break;  
+    case(4):
+    force2.setRadius((int)(theEvent.controller().value()));
+    break;
+    case(5):
+    force2.setStrength((int)(theEvent.controller().value()));
+    break;
+    case(6):
+    force2.setRamp((int)(theEvent.controller().value()));
+    break;
+  }
 }

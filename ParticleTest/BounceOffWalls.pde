@@ -1,8 +1,8 @@
-class BoundsOffWalls extends Behavior 
+class BounceOffWalls extends Behavior 
 {
     float bz;
     
-    BoundsOffWalls (float bz)
+    BounceOffWalls (float bz)
     {
         super();
         this.bz = bz;
