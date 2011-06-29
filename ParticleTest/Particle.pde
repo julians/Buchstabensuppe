@@ -12,9 +12,11 @@ class Particle
     float span;
     float progress;
     ArrayList<Behavior> behaviors;
+    ArrayList<ForceField> forces;
     
     Particle () 
     {
+        this.forces = new ArrayList<ForceField>();
     }
     
     void init(float x, float y, float z, float vx, float vy, float vz) 
@@ -50,10 +52,17 @@ class Particle
         // update x, y, z to fit vectors
         updatePosition();
         updateVelocity();
+        
+        for (int i = 0; i < forces.size(); i++) {
+            ForceField f = forces.get(i);
+            f.setPosition(this.position);
+            f.apply();
+        }
     }
     void die () 
     {
         alive = false;
+        forces.clear();
     }
     Particle randomizeVelocity (float range) {
         return setVelocity(random(-range, range), random(-range, range), random(-range, range));
@@ -80,6 +89,11 @@ class Particle
         position.set(x, y, z);
         updatePosition();
     }
+    void setPosition (PVector p) 
+    {
+        position = p.get();
+        updatePosition();
+    }
     Particle setVelocity (float vx, float vy, float vz) 
     {
         velocity.set(vx, vy, vz);
@@ -102,6 +116,15 @@ class Particle
     }
     Particle removeBehavior (Behavior b) {
         this.behaviors.remove(b);
+        return this;
+    }
+    // ForceFields
+    Particle addForceField (ForceField f) {
+        this.forces.add(f);
+        return this;
+    }
+    Particle removeForceField (ForceField f) {
+        this.forces.remove(f);
         return this;
     }
 

@@ -31,18 +31,29 @@ class ForceField extends Particle
         this.radius = radius;
         this.strength = strength;
         this.ramp = ramp;
+        this.particles = new ArrayList<Particle>();
     }
-    void attract (Particle p) 
+    void influence (Particle p) 
     {
-        PVector delta = this.position.get();
-        delta.sub(p.position.get());
-        float d = delta.mag();
-        if (d > 0 && d < radius) {
-            // calculate force
-            float s = pow(d / radius, 1 / ramp);
-            float f = s *  strength * (1 / (s + 1) + ((s - 3) / 4)) / d;
-            delta.mult(f);
-            p.velocity.add(delta);
+        particles.add(p);
+    }
+    void influence (ArrayList<Particle> p) 
+    {
+        particles = p;
+    }
+    void apply () {
+        for (int i = 0; i < particles.size(); i++) {
+            Particle p = particles.get(i);
+            PVector delta = this.position.get();
+            delta.sub(p.position.get());
+            float d = delta.mag();
+            if (d > 0 && d < radius) {
+                // calculate force
+                float s = pow(d / radius, 1 / ramp);
+                float f = s * strength * (1 / (s + 1) + ((s - 3) / 4)) / d;
+                delta.mult(f);
+                p.velocity.add(delta);
+            }
         }
     }
     void draw () 

@@ -3,7 +3,7 @@ import java.lang.reflect.Method;
 
 class ParticleSystem 
 {
-    int maxParticles = 5000;
+    int maxParticles = 100;
     ArrayList<Particle> particles;
     ArrayList<ForceField> forces;
     float gravity;
@@ -36,6 +36,10 @@ class ParticleSystem
             Particle p = particles.get(i);
             updateParticle(p);
         }
+        // apply forces
+        for (int i = 0; i < forces.size(); i++) {
+            forces.get(i).apply();
+        }
     }
     void updateAndDraw() 
     {
@@ -46,6 +50,7 @@ class ParticleSystem
         for (int i = 0; i < forces.size(); i++) {
             ForceField f = forces.get(i);
             if (f.visible) f.draw();
+            f.apply();
         }
     }
     public void drawParticle(Particle p) 
@@ -67,10 +72,6 @@ class ParticleSystem
         }
     }
     void updateParticle (Particle p) {
-        // apply forces
-        for (int i = 0; i < forces.size(); i++) {
-            forces.get(i).attract(p);
-        }
         // apply global velocities
         if (globalVelocity.mag() != 0) p.addVelocity(globalVelocity);
         // apply gravitation
@@ -109,62 +110,44 @@ class ParticleSystem
     }
     Particle addParticle (Particle particle, float x, float y, float z, float vx, float vy, float vz) 
     {
+        particle.init(x, y, z, vx, vy, vz);
         if (particles.size() < maxParticles) {
-            particle.init(x, y, z, vx, vy, vz);
-            
-            // We can add Behaviors without making class files
-            
-            // particle.addBehavior(new Behavior() {
-            //    public void apply (Particle p) {
-            //        // bounce of edges left and right
-            //        if (p.position.x < 0) {
-            //            p.position.x = 0;
-            //            p.velocity.x *= -1;
-            //        }
-            //        else if (p.position.x > width) {
-            //            p.position.x = width;
-            //            p.velocity.x *= -1;
-            //        }
-            //        // top and bottom
-            //        if (p.position.y < 0) {
-            //            p.position.y = 0;
-            //            p.velocity.y *= -1;
-            //        }
-            //        else if (p.position.y > height) {
-            //            p.position.y = height;
-            //            p.velocity.y *= -1;
-            //        }
-            //    } 
-            // });
             particles.add(particle);
             return particle;
         } else {
             // todo: kill old particle or wait?
         }
-        return null;   
+        return particle;   
     }
     void removeParticle (Particle p) 
     {
         particles.remove(p);
+        for (int i = 0; i < forces.size(); i++) {
+            ForceField f = forces.get(i);
+            if (f.particles.contains(p)) {
+                f.particles.remove(f.particles.indexOf(p));
+            }
+        }   
     }
     
     // Forces
-    void addForceField (PVector pos, PVector vel, float radius) 
+    ForceField addForceField (PVector pos, PVector vel, float radius) 
     {
         ForceField f = new ForceField (pos, vel, radius);
-        this.addForceField(f);
+        return this.addForceField(f);
     }
-    void addForceField(PVector pos) 
+    ForceField addForceField(PVector pos) 
     {
         ForceField f = new ForceField (pos);
-        this.addForceField(f);
+        return this.addForceField(f);
     }
-    void addForceField (ForceField f) 
+    ForceField addForceField (ForceField f) 
     {
         this.forces.add(f);
+        return f;
     }
     
-    // Global Velocity (Gravity, Wind, ...)
+    // Global Velocity
     void addGlobalVelocity (PVector vel) 
     {
         globalVelocity.add(vel);

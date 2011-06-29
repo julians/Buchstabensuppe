@@ -6,7 +6,7 @@ import controlP5.*;
 ParticleSystem emitter;
 RFont font;
 ControlP5 controlP5;
-ForceField force, force2;
+ForceField force;
 
 void setup()
 {
@@ -23,18 +23,12 @@ void setup()
     emitter.addGlobalVelocity(0, 0, 1);
     force = new ForceField(new PVector (width / 2, height / 2, 0)).setRadius(50).setStrength(100).show();
     emitter.addForceField(force);
-    force2 = new ForceField(new PVector (width / 4, height / 4, 0)).setRadius(50).setStrength(100).show();
-    emitter.addForceField(force2);
-    
+
     // Slider für das ForceField
     controlP5 = new ControlP5(this);
     controlP5.addSlider("radius", 0, 1000, 100, 10, 40, 100, 20).setId(1);
-    controlP5.addSlider("strength", -20, 20, 10, 10, 60, 100, 20).setId(2);
+    controlP5.addSlider("strength", -50, 50, 10, 10, 60, 100, 20).setId(2);
     controlP5.addSlider("ramp", 0, 2, 1, 10, 20, 80, 20).setId(3);
-    
-    controlP5.addSlider("radius2", 0, 1000, 100, 10, 100, 100, 20).setId(4);
-    controlP5.addSlider("strength2", -20, 20, 10, 10, 120, 100, 20).setId(5);
-    controlP5.addSlider("ramp2", 0, 2, 1, 10, 140, 100, 20).setId(6);
 }
 
 void draw()
@@ -55,7 +49,14 @@ void draw()
     // Ein Partikel an der Mausposition hinzufügen und zufällige Richtung geben
     char surprise = char((byte) random(97, 122));
     // emitter.addParticle(new CharParticle(surprise), mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BoundsOffWalls(0));
-    emitter.addParticle(new Particle(), mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BounceOffWalls(0)).setLifeSpan(1000);
+
+    Particle p = new Particle();
+    force = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);
+    p.addForceField(force);
+    force.influence(emitter.getParticles());
+    
+    emitter.addParticle(p, mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BounceOffWalls(0)).setLifeSpan(random(1000));
+    
     emitter.updateAndDraw();
     
     // Man kann auch selbst auf die Partikel zugreifen
@@ -84,6 +85,7 @@ void drawParticle (Particle p)
 void debug () 
 {
     noStroke();
+    fill(255);
     text("particles: " + emitter.getParticleCount(), width - 120, height - 40); 
     text("framerate: " + (int) frameRate, width - 120, height - 20); 
 }
@@ -111,14 +113,5 @@ void controlEvent(ControlEvent theEvent) {
     case(3):
     force.setRamp((int)(theEvent.controller().value()));
     break;  
-    case(4):
-    force2.setRadius((int)(theEvent.controller().value()));
-    break;
-    case(5):
-    force2.setStrength((int)(theEvent.controller().value()));
-    break;
-    case(6):
-    force2.setRamp((int)(theEvent.controller().value()));
-    break;
   }
 }
