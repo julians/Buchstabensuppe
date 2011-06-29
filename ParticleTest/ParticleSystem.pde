@@ -3,7 +3,7 @@ import java.lang.reflect.Method;
 
 class ParticleSystem 
 {
-    int maxParticles = 100;
+    int maxParticles;
     ArrayList<Particle> particles;
     ArrayList<ForceField> forces;
     float gravity;
@@ -13,6 +13,11 @@ class ParticleSystem
 
     ParticleSystem(PApplet p5) 
     {
+        this(p5, 200);
+    }
+    ParticleSystem (PApplet p5, int max) 
+    {
+        this.maxParticles = max;
         this.p5 = p5;
         particles = new ArrayList<Particle>(maxParticles);
         forces = new ArrayList<ForceField>();
@@ -31,6 +36,7 @@ class ParticleSystem
 			e.printStackTrace();
 		}
     }
+
     void update () {
         for (int i = 0; i < particles.size(); i++) {
             Particle p = particles.get(i);

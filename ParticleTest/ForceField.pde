@@ -60,10 +60,11 @@ class ForceField extends Particle
     {
         noFill();
         stroke(255, 50);
-        sphereDetail(10);
+        // sphereDetail(10);
         pushMatrix();
-        translate(position.x, position.y, position.z);
-        sphere(radius);
+            translate(position.x, position.y, position.z);
+            // sphere(radius);
+            ellipse(0, 0, radius, radius);
         popMatrix();
     }
     ForceField setRadius (float r) 

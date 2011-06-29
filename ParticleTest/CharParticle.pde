@@ -13,7 +13,6 @@ class CharParticle extends Particle
     CharParticle (char c) {
       super();
       this.character = c;
-      println(c);
       setup();
     }     
 
@@ -58,9 +57,9 @@ class CharParticle extends Particle
                  endShape(CLOSE);
             
             }
-            m1.draw();
-            translate(0, 0, 3);
-            m1.draw();
+            // m1.draw();
+            // translate(0, 0, 3);
+            // m1.draw();
         }
         popMatrix();
     }
