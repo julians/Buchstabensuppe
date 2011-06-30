@@ -8,7 +8,7 @@ import ddf.minim.*;
 
 ParticleSystem emitter;
 ForceField force;
-int maxParticles = 200;
+int maxParticles = 1000;
 
 RFont font;
 
@@ -70,7 +70,7 @@ void setup() {
     force = new ForceField(new PVector (width / 2, height / 2, 0)).setRadius(50).setStrength(100).show();
     emitter.addForceField(force);
     
-    createCharacterDistribution();
+    // createCharacterDistribution();
 
 }
 
@@ -182,9 +182,9 @@ void createCharacterDistribution () {
       }
 }
 
-void transcribe (String word, float confidence) {
-    formWord(word.toUpperCase());
-}
+// void transcribe (String word, float confidence) {
+//     formWord(word.toUpperCase());
+// }
 
 void formWord (String word) {
     for (int i = 0; i < word.length(); i++) {
@@ -196,13 +196,13 @@ void formWord (String word) {
                 if (buh.character != (c)) {
                  emitter.removeParticle(buh);
                 } else if (!found && buh.character == (c)){
-                    emitter.clearForces(buh);
-                    ForceField attraction = new ForceField(new PVector (width / 2 + i * 20, height / 2, 100)).setRadius(1000).setStrength(10);
+                    // emitter.clearForces(buh);
+                    ForceField attraction = new ForceField(new PVector (width / 2 + i * 20, height / 2 + i * 20, 100)).setRadius(1000).setStrength(100);
                     emitter.addForceField(attraction);
                     attraction.influence(buh);
-                    buh.addBehavior(new Friction(0.1));
+                    // buh.addBehavior(new Friction(0.1));
                     found = true;
-                    println(c);
+                    println("already here: " + c + " // " + buh.position + " // " + buh.velocity);
                 }
           
         }

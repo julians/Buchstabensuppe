@@ -15,3 +15,7 @@ compiled/buchstabensuppe$NGram.class
 compiled/buchstabensuppe$CharParticle.class
 
 ParticleTest/Emitter.pde
+
+ParticleTest/data/0.wav
+
+ParticleTest/data/0.flac
