@@ -19,7 +19,7 @@ class ParticleSystem
     {
         this.maxParticles = max;
         this.p5 = p5;
-        particles = new ArrayList<Particle>(maxParticles);
+        particles = new ArrayList<Particle>();
         forces = new ArrayList<ForceField>();
         this.globalVelocity = new PVector();
         
@@ -90,6 +90,7 @@ class ParticleSystem
             updateParticle(p);
             drawParticle(p);
         } else {
+            println("remove");
             removeParticle(p);
         }
     }
@@ -122,8 +123,10 @@ class ParticleSystem
             return particle;
         } else {
             // todo: kill old particle or wait?
+            particles.add(particle);
+            println("added");
+            return particle;
         }
-        return particle;   
     }
     void removeParticle (Particle p) 
     {
@@ -151,6 +154,11 @@ class ParticleSystem
     {
         this.forces.add(f);
         return f;
+    }
+    void clearForces (Particle p) {
+        for (int i = 0; i < forces.size(); i++) {
+            forces.get(i).remove(p);
+        }
     }
     
     // Global Velocity
@@ -200,5 +208,9 @@ class ParticleSystem
     int getParticleCount ()
     {
         return particles.size();
+    }
+    int getMaxParticles () 
+    {
+        return maxParticles;
     }
 }

@@ -41,6 +41,10 @@ class ForceField extends Particle
     {
         particles = p;
     }
+    void remove (Particle p) 
+    {
+        particles.remove(p);
+    }
     void apply () {
         for (int i = 0; i < particles.size(); i++) {
             Particle p = particles.get(i);
