@@ -10,14 +10,16 @@ import codeanticode.glgraphics.*;
 import com.getflourish.stt.*;
 import controlP5.*;
 import geomerative.*;
+import damkjer.ocd.*;
 
 AudioInput microphone;
 AudioPlayer sample;
+Camera cam;
 ControlWindow controlWindow;
 FFT fftLog;
 Fluid fluid;
 ForceField force;
-GLGraphicsOffScreen tex;
+GLGraphicsOffScreen canvas;
 GLSLShader vertexShader;
 Minim minim;
 ParticleSystem emitter;
@@ -27,16 +29,16 @@ RFont font;
 Slider2D s;
 STT stt;
 
-
 boolean dome = false;
 boolean mic = true;
-boolean rayShader = true;
+boolean applyShaders = true;
 boolean showDebug = true;
 boolean showFluid = false;
 boolean showParticles = true;
 
 float exposure, decay, density, weight;
 float fluidSize = 2;
+float dollyStep = 5;
 int maxParticles = 300;
 
 /////////////////////////////////////////////////
@@ -52,13 +54,17 @@ public void setup()
     frameRate(60);
     hint(ENABLE_OPENGL_4X_SMOOTH);
     
+    // Kamera
+    cam = new Camera(this, width / 2, height / 2, 1000, 1, 10 * 1000);
+    cam.aim(width / 2, height / 2, 0);
+    
     vertexShader = new GLSLShader(this, "ls.vert", "ls.frag");
-    tex = new GLGraphicsOffScreen(this, width, height);
+    canvas = new GLGraphicsOffScreen(this, width, height);
     
     light = new PVector(0, 0);
     
     // Zweites Fenster für die Slider in 2D
-    controlFrame = new PFrame();
+    controlFrame = new PFrame(this);
     
     // STT
     stt = new STT(this, false);
@@ -84,6 +90,12 @@ public void setup()
     emitter.addForceField(force);
     
     createCharacterDistribution();
+    
+    // Shader stuff
+    exposure = 1;
+    decay = 0.7;
+    density = 0.5;
+    weight = 0.9;
 
 }
 
@@ -91,8 +103,7 @@ public void setup()
 
 public void draw() {
     background(0);        
-    tex.clear(0);
-    
+
     // Fluid
     if (showFluid) {
         disturb();
@@ -129,22 +140,27 @@ public void draw() {
             emitter.addParticle(p, mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BounceOffWalls(0)).setLifeSpan(random(1000));
             p.addBehavior(new Friction(0.01));
         }
-        
-        if (rayShader) {
+        if (applyShaders) {
             // Postprocessing Filter, der so tut als wenn Licht hinter den Buchstaben wäre und diese überstrahlt
-            tex.beginDraw();
-                tex.clear(0);
+            canvas.beginDraw();
+                canvas.clear(0);
+                // Kamera
+                cam.dolly(dollyStep);
+                cam.feed();
                 emitter.updateAndDraw();
-            tex.endDraw();
+
+            canvas.endDraw();
+
             vertexShader.start();
                 vertexShader.setFloatUniform("exposure", exposure);
                 vertexShader.setFloatUniform("decay", decay);
                 vertexShader.setFloatUniform("density", density);
                 vertexShader.setFloatUniform("weight", weight);
                 vertexShader.setVecUniform("lightPositionOnScreen", light.x, light.y);
-                image(tex.getTexture(), 0, 0, width, height);
+                image(canvas.getTexture(), 0, 0, width, height);
             vertexShader.stop();
         } else {
+            // Particle System zeichnen
             emitter.updateAndDraw();
         }
     
@@ -161,22 +177,42 @@ public void draw() {
 // Wird automatisch vom Partikelsystem aufgerufen
 
 public void drawParticle (Particle p) {
-    fill(255 - p.progress * 255);
-    noStroke();
-    if (p instanceof CharParticle) {
-        fill(255, 100, 0);
-        // Drehen
-        float angle = atan2(p.y - height / 2, p.x - width / 2);
-        pushMatrix();
-            translate(p.x, p.y, p.z);
-            rotate(angle);
-            rotate(-HALF_PI);
-            ((CharParticle) p).draw(); 
-        popMatrix(); 
-    } 
-    else {
-        stroke(255 - p.progress * 255);
-        point(p.x, p.y);
+    if(applyShaders) {
+        canvas.fill(255 - p.progress * 255);
+        canvas.noStroke();
+        if (p instanceof CharParticle) {
+            canvas.fill(255, 100, 0);
+            // Drehen
+            float angle = atan2(p.y - height / 2, p.x - width / 2);
+            canvas.pushMatrix();
+                canvas.translate(p.x, p.y, p.z);
+                canvas.rotate(angle);
+                canvas.rotate(-HALF_PI);
+                ((CharParticle) p).draw(canvas); 
+            canvas.popMatrix(); 
+        } 
+        else {
+            canvas.stroke(255 - p.progress * 255);
+            canvas.point(p.x, p.y);
+        }
+    } else {
+        fill(255 - p.progress * 255);
+        noStroke();
+        if (p instanceof CharParticle) {
+            fill(255, 100, 0);
+            // Drehen
+            float angle = atan2(p.y - height / 2, p.x - width / 2);
+            pushMatrix();
+                translate(p.x, p.y, p.z);
+                rotate(angle);
+                rotate(-HALF_PI);
+                ((CharParticle) p).draw(); 
+            popMatrix(); 
+        } 
+        else {
+            stroke(255 - p.progress * 255);
+            point(p.x, p.y);
+        }
     }
 }
 
@@ -272,6 +308,7 @@ public void keyPressed () {
     if (key == 'f') showFluid = !showFluid;
     if (key == 'p') showParticles = !showParticles;
     if (key == 'e') formWord("ESSEN", new PVector(mouseX, mouseY, 100));
+    if (key == 's') applyShaders = !applyShaders;
     println(frameRate);
 }
 
@@ -292,101 +329,6 @@ public void stop()
   }
   minim.stop();
   super.stop();
-}
-
-// Zweites Fenster mit Controls
-public class PFrame extends Frame 
-{
-    public PFrame() 
-    {
-        setBounds(100, 100, 200, 600);
-        controlWindow = new ControlWindow();
-        add(controlWindow);
-        controlWindow.init();
-        show();
-    }
-}
-
-public class ControlWindow extends PApplet 
-{
-    ControlP5 controlP5;
-    
-    public void setup() {
-        size(200, 600);
-        controlP5 = new ControlP5(this);
-        //// Slider für das ForceField
-        controlP5 = new ControlP5(this);
-        controlP5.addSlider("radius", 0, 1000, 100, 10, 40, 100, 20).setId(1);
-        controlP5.addSlider("strength", -50, 50, 10, 10, 65, 100, 20).setId(2);
-        controlP5.addSlider("ramp", 0, 2, 1, 10, 90, 100, 20).setId(3);
-        controlP5.addSlider("fade speed", 0, 0.1, 0.05, 10, 115, 100, 20).setId(4);
-        controlP5.addSlider("delta time", 0, 1, 0.06, 10, 140, 100, 20).setId(5);
-        controlP5.addSlider("viscosity", 0, 0.001, 0.00004, 10, 165, 100, 20).setId(6);
-        controlP5.addSlider("fluid size", 1, 4, 2, 10, 190, 100, 20).setId(7);
-        controlP5.addSlider("force z", -100, 100, 0, 10, 215, 100, 20).setId(8);
-        
-        controlP5.addSlider("exposure", 0, 1, 1, 10, 240, 100, 20).setId(9);
-        controlP5.addSlider("decay", 0, 1, 1, 10, 265, 100, 20).setId(10);
-        controlP5.addSlider("density", 0, 1, 1, 10, 290, 100, 20).setId(11);
-        controlP5.addSlider("weight", 0, 1, 0.5, 10, 315, 100, 20).setId(12);
-        
-        s = controlP5.addSlider2D("wave",10,340,100,100);
-        s.setMaxX(1.0);
-        s.setMaxY(1.0);
-        s.setId(13);
-    }
-
-    public void draw() {
-        background(0);
-    }
-    
-    public void controlEvent(ControlEvent theEvent) 
-    {
-        float v = theEvent.controller().value();
-
-        switch(theEvent.controller().id()) {
-            case(1):
-                force.setRadius(v);
-                break;
-            case(2):
-                force.setStrength(v);
-                break;
-            case(3):
-                force.setRamp(v);
-                break;  
-            case(4):
-                fluid.fluidSolver.setFadeSpeed(v);
-                break;
-            case(5):
-                fluid.fluidSolver.setDeltaT(v);
-                break;
-            case(6):
-                fluid.fluidSolver.setVisc(v);
-                break;
-            case(7):
-                fluidSize = v;
-                break;
-            case(8):
-                force.setPosition(force.x, force.y, v);
-                break;
-            case(9):
-                exposure = v;
-                break;
-            case(10):
-                decay = v;
-                break;
-            case(11):
-                density = v;
-                break;  
-            case(12):
-                weight = v;
-                break;
-            case(13):
-                light.x = s.arrayValue()[0];
-                light.y = s.arrayValue()[1];
-                break;
-        }
-    }
 }
 
 // OpenGL Alternative zu backround(c, c, c, alpha);
