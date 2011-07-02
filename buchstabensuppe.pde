@@ -8,8 +8,9 @@ import codeanticode.glgraphics.*;
 import java.util.Map;
 
 ParticleSystem emitter;
-int numParticles = 1000;
+int numParticles = 100;
 
+CharParticle a;
 ArrayList particles;
 String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 int ts = 24;
@@ -30,9 +31,9 @@ ThreadedNGramGetter nGramGetter;
 void setup ()
 {
     if (dome) {
-       size(1920, 1920, OPENGL);   
+       size(1920, 1920, GLConstants.GLGRAPHICS);   
     } else {
-       size(800, 800, OPENGL);
+       size(800, 800, GLConstants.GLGRAPHICS);
     }
 
     hint( ENABLE_OPENGL_4X_SMOOTH );
@@ -56,6 +57,8 @@ void setup ()
     
     nGramGetter = new ThreadedNGramGetter(this);
     nGramGetter.getNGram("waschmittelwerbung");
+    
+    a = new CharParticle(this, 'H');
 }
 
 void nGramFound (NGram ngram)
@@ -66,7 +69,7 @@ void nGramFound (NGram ngram)
 
 void draw ()
 {
-      
+    background(0);     
   pgl.beginGL();
   
   // This fixes the overlap issue
@@ -78,11 +81,16 @@ void draw ()
   // Define the blend mode
   gl.glBlendFunc(GL.GL_SRC_ALPHA,GL.GL_ONE);
   
-  fadeToColor(gl, 0, 0, 0, 0.09);
+  // fadeToColor(gl, 0, 0, 0, 0.09);
   pgl.endGL();
   
-  lights();
+  ambient(250, 250, 250);
+  pointLight(255, 255, 255, 500, height/2, 400);
+  
   displayParticles();
+    
+  translate(width / 2, height / 2, 500);
+  a.draw();
 }
 
 void initParticles () 
@@ -96,11 +104,11 @@ void createParticles() {
     for (int i = 0; i < numParticles; i++) {
         Particle a;
         if (dd) {
-            a = emitter.makeParticle(1, random(width), random(height), random(-1000, -10000));
+            a = emitter.makeParticle(1, random(width), random(height), random(100, 200));
         } else {
             a = emitter.makeParticle(1, random(width), random(height), 0);
         }
-        particles.add(new CharParticle(chars.charAt((int)random(chars.length()))));
+        particles.add(new CharParticle(this, chars.charAt((int)random(chars.length()))));
         a.velocity().set(random(-0.5, 0.3), random(-0.5, 0.3), random(0, 1));
         for (int j = 0; j < emitter.numberOfParticles() - 1; j++) {
             Particle b = emitter.getParticle(j);
@@ -134,7 +142,7 @@ void displayParticles ()
         float bla =  10 + map(p.position().z(), -1000, 1000, 0, 255);
         fill(bla, bla, bla);
         if (p.position().z() < 0) {
-          cp.flat = true;
+          // cp.flat = true;
         } else {
           cp.flat = false;
         }
@@ -165,7 +173,7 @@ CharParticle getParticleForChar (char c) {
             return p;
         }
     } 
-    CharParticle p = new CharParticle(c);
+    CharParticle p = new CharParticle(this, c);
     particles.add(p);
     p.used = true;
     p.resetRotation();
@@ -205,4 +213,8 @@ void fadeToColor(GL gl, float r, float g, float b, float speed) {
     gl.glVertex2f(width, height);
     gl.glVertex2f(0, height);
     gl.glEnd();
+}
+
+void keyPressed () {
+    println(frameRate);
 }

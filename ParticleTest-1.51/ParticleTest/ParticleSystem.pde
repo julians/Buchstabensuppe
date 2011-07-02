@@ -43,9 +43,9 @@ class ParticleSystem
             updateParticle(p);
         }
         // apply forces
-        // for (int i = 0; i < forces.size(); i++) {
-        //     forces.get(i).apply();
-        // }
+        for (int i = 0; i < forces.size(); i++) {
+            forces.get(i).apply();
+        }
     }
     void updateAndDraw() 
     {
@@ -53,11 +53,11 @@ class ParticleSystem
             Particle p = particles.get(i);
             updateAndDrawParticle(p);
         }
-        // for (int i = 0; i < forces.size(); i++) {
-        //     ForceField f = forces.get(i);
-        //     if (f.visible) f.draw();
-        //     f.apply();
-        // }
+        for (int i = 0; i < forces.size(); i++) {
+            ForceField f = forces.get(i);
+            if (f.visible) f.draw();
+            f.apply();
+        }
     }
     public void drawParticle(Particle p) 
     {   
@@ -137,6 +137,17 @@ class ParticleSystem
                 f.particles.remove(f.particles.indexOf(p));
             }
         }   
+    }
+    void removeParticle (int index) 
+    {
+        Particle p = particles.get(index);
+        for (int i = 0; i < forces.size(); i++) {
+            ForceField f = forces.get(i);
+            if (f.particles.contains(p)) {
+                f.particles.remove(f.particles.indexOf(p));
+            }
+        }   
+        particles.remove(index);
     }
     
     // Forces

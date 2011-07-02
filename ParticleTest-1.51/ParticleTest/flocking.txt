@@ -1,0 +1,59 @@
+void update(vector<particle> &PSystem)
+{
+	acc =flockingVec(PSystem); 
+	vel += acc;
+	loc += vel;
+	vel *=damping; 
+	loc.normalize(loc);
+	
+}
+
+
+Vec3<float> flockingVec(vector<particle> PSystem)
+{
+	float count = PSystem.size(); 
+	float length; 
+	Vec3<float> center(0.0,0.0,0.0);
+	Vec3<float> sum(0.0,0.0,0.0); 
+	float minDist = 10.0; 
+	
+	for (int i = 0 ; i < PSystem.size(); i++) 
+	{
+		
+		//Vec3<float> d;
+		//d.sub(d,loc,PSystem[i].loc);
+		//length = d.mag(d); 
+		length = loc.angle(loc, PSystem[i].loc); 
+		
+		// If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
+		
+		//if ((PSystem[i].id != id) && (length < 1.0)) 
+		if (PSystem[i].id != id)
+		{
+			center +=PSystem[i].loc;
+			if(length < lengthMinimum)
+			{
+				Vec3<float> diff = (loc - PSystem[i].loc);
+				diff.normalize(diff);
+				diff *= PSystem[i].magnitude; 
+				sum+=diff;
+				count++; 
+			}
+			if(length < minDist)
+			{
+				N1 = i; 
+				minDist = length; 
+				distance = minDist; 
+			}
+		}
+	}
+	// Average -- divide by how many
+	if (count > 0) 
+	{
+		sum*=(repelStrength/count);
+		center*=(1.0/count);
+		center*=centerAttraction; 
+		sum+=center; 
+	}
+	return sum;
+}

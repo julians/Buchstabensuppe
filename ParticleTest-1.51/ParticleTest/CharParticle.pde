@@ -3,12 +3,12 @@ class CharParticle extends Particle
     RShape shp;
     RPoint[][] pnts;
     RMesh m1;
-    int w;
+    float w;
     boolean used = false;
     char character;
     float spin = random(-1, 1);
     int rx, ry;
-    boolean flat = true;
+    boolean flat = false;
 
     CharParticle (char c) {
       super();
@@ -29,22 +29,21 @@ class CharParticle extends Particle
     void draw() 
     {
         pushMatrix();   
-        translate(x, y, z);
         
-        flat = (z < 0) ? true : false;
+        // flat = (z < 0) ? true : false;
 
         if (flat) {
           text(character, 0, 0);
         } 
         else { 
-            spin -= 0.001;
+            spin -= 0.01;
             
             if (!used) {
                 rx += PI/9;
                 ry += PI/5 + spin;
             
                 rotateY(sin(spin));
-                //rotateY(PI/5 + spin);
+                rotateY(PI/5 + spin);
             }
             
             for (int i = 0; i < pnts.length; i++) {
@@ -53,6 +52,7 @@ class CharParticle extends Particle
                  {
                      vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
                      vertex(pnts[i][ii].x, pnts[i][ii].y, 3);
+                     if (pnts[i][ii].x > w) w = pnts[i][ii].x;
                  }
                  endShape(CLOSE);
             
