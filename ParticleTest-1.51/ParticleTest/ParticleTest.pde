@@ -102,7 +102,7 @@ public void setup()
 /////////////////////////////////////////////////
 
 public void draw() {
-    background(0);        
+    background(65, 95, 170);        
 
     // Fluid
     if (showFluid) {
@@ -143,12 +143,15 @@ public void draw() {
         if (applyShaders) {
             // Postprocessing Filter, der so tut als wenn Licht hinter den Buchstaben wäre und diese überstrahlt
             canvas.beginDraw();
-                canvas.clear(0);
+                canvas.background(65, 95, 170);
+                // Lichter
+                ambient(250, 250, 250);
+                pointLight(255, 255, 255, 500, height/2, 400);
                 // Kamera
                 cam.dolly(dollyStep);
                 cam.feed();
-                emitter.updateAndDraw();
-
+                // Partikelsystem zeichnen
+                emitter.updateAndDraw(canvas);
             canvas.endDraw();
 
             vertexShader.start();
@@ -160,10 +163,9 @@ public void draw() {
                 image(canvas.getTexture(), 0, 0, width, height);
             vertexShader.stop();
         } else {
-            // Particle System zeichnen
+            // Partikelsystem zeichnen
             emitter.updateAndDraw();
         }
-    
     }
     // Statusanzeigen mit FPS, Anzahl der Partikel
     if (showDebug) debug();   
@@ -177,11 +179,12 @@ public void draw() {
 // Wird automatisch vom Partikelsystem aufgerufen
 
 public void drawParticle (Particle p) {
+    // In die Textur zeichnen wenn Shader aktiviert sind
     if(applyShaders) {
         canvas.fill(255 - p.progress * 255);
-        canvas.noStroke();
         if (p instanceof CharParticle) {
-            canvas.fill(255, 100, 0);
+            canvas.fill(255);
+            // canvas.fill(255, 100, 0);
             // Drehen
             float angle = atan2(p.y - height / 2, p.x - width / 2);
             canvas.pushMatrix();
@@ -192,9 +195,12 @@ public void drawParticle (Particle p) {
             canvas.popMatrix(); 
         } 
         else {
-            canvas.stroke(255 - p.progress * 255);
-            canvas.point(p.x, p.y);
+            canvas.beginShape(POINTS);
+            canvas.stroke(255);
+            canvas.vertex(p.x, p.y, p.z);
+            canvas.endShape(CLOSE);
         }
+    // Ganz normal zeichnen
     } else {
         fill(255 - p.progress * 255);
         noStroke();
@@ -226,9 +232,14 @@ public void createCharacterDistribution ()
     {
         Map.Entry pairs = (Map.Entry) it.next();
         
+        char c;
         for (int i = 0; i < 1 + (Float) pairs.getValue() * onePercent; i++) {
-            char c = ((String) pairs.getKey()).charAt(0);
-            ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);
+            if ((int) random(1) == 0) {
+                c = ((String) pairs.getKey()).charAt(0);
+            } else {
+                c = (((String) pairs.getKey()).toLowerCase()).charAt(0); 
+            }
+            ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);            
             CharParticle p = new CharParticle(c);
             p.addForceField(attraction);
             attraction.influence(emitter.getParticles());
@@ -252,6 +263,7 @@ public void formWord (String word, PVector pos) {
         ForceField attraction = new ForceField(new PVector(pos.x + i * p.w + 10, pos.y, pos.z)).setRadius(1000).setStrength(10);
         emitter.addForceField(attraction);
         attraction.influence(p);
+        println("added " + c);
     }
 }
 
@@ -266,7 +278,7 @@ CharParticle getParticleForChar(char c) {
         }
     }
     CharParticle p = new CharParticle(c);
-    emitter.addParticle(p, random(width), random(height), random(100));
+    emitter.addParticle(p, random(width), random(height), random(100)).setLifeSpan(random(1000));
     p.used = true;
     return p;
 }
@@ -307,7 +319,7 @@ public void disturb() {
 public void keyPressed () {
     if (key == 'f') showFluid = !showFluid;
     if (key == 'p') showParticles = !showParticles;
-    if (key == 'e') formWord("ESSEN", new PVector(mouseX, mouseY, 100));
+    if (key == 'e') formWord("Essen", new PVector(mouseX, mouseY, 100));
     if (key == 's') applyShaders = !applyShaders;
     println(frameRate);
 }

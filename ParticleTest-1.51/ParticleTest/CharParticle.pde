@@ -84,7 +84,7 @@ class CharParticle extends Particle
             }
             
             for (int i = 0; i < pnts.length; i++) {
-                 canvas.beginShape(QUAD_STRIP);
+                 canvas.beginShape(POINTS);
                  for (int ii = 0; ii < pnts[i].length; ii++)
                  {
                      canvas.vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
@@ -102,7 +102,7 @@ class CharParticle extends Particle
     }
     void drawFace(GLGraphicsOffScreen canvas) {
         for (int i = 0; i < m1.countStrips(); i++){
-          canvas.beginShape(PConstants.TRIANGLE_STRIP);
+          canvas.beginShape(PConstants.POINTS);
           for(int j=0;j<m1.strips[i].vertices.length;j++){
             canvas.vertex(m1.strips[i].vertices[j].x,m1.strips[i].vertices[j].y);
           }

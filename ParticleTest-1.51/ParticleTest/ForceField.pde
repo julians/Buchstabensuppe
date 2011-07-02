@@ -69,9 +69,20 @@ class ForceField extends Particle
         // sphereDetail(10);
         pushMatrix();
             translate(position.x, position.y, position.z);
-            // sphere(radius);
-            ellipse(0, 0, radius, radius);
+            sphere(radius);
+            // ellipse(0, 0, radius, radius);
         popMatrix();
+    }
+    void draw (GLGraphicsOffScreen canvas) 
+    {
+        canvas.noFill();
+        canvas.stroke(255, 50);
+        // sphereDetail(10);
+        canvas.pushMatrix();
+            canvas.translate(position.x, position.y, position.z);
+            canvas.sphere(radius);
+            // ellipse(0, 0, radius, radius);
+        canvas.popMatrix();
     }
     ForceField setRadius (float r) 
     {   

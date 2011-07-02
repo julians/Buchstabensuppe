@@ -59,6 +59,18 @@ class ParticleSystem
             f.apply();
         }
     }
+    void updateAndDraw(GLGraphicsOffScreen canvas) 
+    {
+        for (int i = 0; i < particles.size(); i++) {
+            Particle p = particles.get(i);
+            updateAndDrawParticle(p);
+        }
+        for (int i = 0; i < forces.size(); i++) {
+            ForceField f = forces.get(i);
+            if (f.visible) f.draw(canvas);
+            f.apply();
+        }
+    }
     public void drawParticle(Particle p) 
     {   
         // uses the drawParticle method in the main program
