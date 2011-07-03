@@ -20,6 +20,7 @@ FFT fftLog;
 Fluid fluid;
 ForceField force;
 GLGraphicsOffScreen canvas;
+GLSLShader phongShader;
 GLSLShader vertexShader;
 Minim minim;
 ParticleSystem emitter;
@@ -59,6 +60,7 @@ public void setup()
     cam.aim(width / 2, height / 2, 0);
     
     vertexShader = new GLSLShader(this, "ls.vert", "ls.frag");
+    phongShader = new GLSLShader(this, "ps.vert", "ps.frag");
     canvas = new GLGraphicsOffScreen(this, width, height);
     
     light = new PVector(0, 0);
@@ -184,6 +186,7 @@ public void drawParticle (Particle p) {
         canvas.fill(255 - p.progress * 255);
         if (p instanceof CharParticle) {
             canvas.fill(255);
+            canvas.noStroke();
             // canvas.fill(255, 100, 0);
             // Drehen
             float angle = atan2(p.y - height / 2, p.x - width / 2);
@@ -240,7 +243,7 @@ public void createCharacterDistribution ()
                 c = (((String) pairs.getKey()).toLowerCase()).charAt(0); 
             }
             ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);            
-            CharParticle p = new CharParticle(c);
+            CharParticle p = new CharParticle(this, c);
             p.addForceField(attraction);
             attraction.influence(emitter.getParticles());
             force.influence(p);
@@ -277,7 +280,7 @@ CharParticle getParticleForChar(char c) {
             }
         }
     }
-    CharParticle p = new CharParticle(c);
+    CharParticle p = new CharParticle(this, c);
     emitter.addParticle(p, random(width), random(height), random(100)).setLifeSpan(random(1000));
     p.used = true;
     return p;
