@@ -65,6 +65,8 @@ void nGramFound (NGram ngram)
 {
     println("huhu, ngram!");
     println(ngram.word);
+    println(ngram.getValueForYear(2008));
+    println(ngram.getFirstOccurance());
 }
 
 void draw ()
