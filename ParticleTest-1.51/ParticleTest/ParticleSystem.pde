@@ -13,7 +13,7 @@ class ParticleSystem
 
     ParticleSystem(PApplet p5) 
     {
-        this(p5, 200);
+        this(p5, -1); // -1 = unlimited particles
     }
     ParticleSystem (PApplet p5, int max) 
     {
@@ -102,7 +102,6 @@ class ParticleSystem
             updateParticle(p);
             drawParticle(p);
         } else {
-            println("remove");
             removeParticle(p);
         }
     }
@@ -130,13 +129,12 @@ class ParticleSystem
     Particle addParticle (Particle particle, float x, float y, float z, float vx, float vy, float vz) 
     {
         particle.init(x, y, z, vx, vy, vz);
-        if (particles.size() < maxParticles) {
+        if (maxParticles == -1 || particles.size() < maxParticles) {
             particles.add(particle);
             return particle;
         } else {
             // todo: kill old particle or wait?
             particles.add(particle);
-            println("added");
             return particle;
         }
     }

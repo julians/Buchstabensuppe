@@ -4,26 +4,31 @@
 *   
 */
 
-import ddf.minim.analysis.*;
-import ddf.minim.*;
 import codeanticode.glgraphics.*;
 import com.getflourish.stt.*;
 import controlP5.*;
-import geomerative.*;
 import damkjer.ocd.*;
+import ddf.minim.*;
+import ddf.minim.analysis.*;
+import geomerative.*;
+import processing.opengl.*;
+
 
 AudioInput microphone;
 AudioPlayer sample;
 Camera cam;
+CharCloud cloud;
 ControlWindow controlWindow;
 FFT fftLog;
 Fluid fluid;
 ForceField force;
 GLGraphicsOffScreen canvas;
+GLTexture backgroundTex;
+GLTexture cloudTex;
+GLModel distributionGraph;
 GLSLShader phongShader;
 GLSLShader vertexShader;
 Minim minim;
-ParticleSystem emitter;
 PFrame controlFrame;
 PVector light;
 RFont font;
@@ -39,8 +44,8 @@ boolean showParticles = true;
 
 float exposure, decay, density, weight;
 float fluidSize = 2;
-float dollyStep = 5;
-int maxParticles = 300;
+float dollyStep = -5;
+int maxParticles = 100;
 
 /////////////////////////////////////////////////
 
@@ -56,14 +61,17 @@ public void setup()
     hint(ENABLE_OPENGL_4X_SMOOTH);
     
     // Kamera
-    cam = new Camera(this, width / 2, height / 2, 1000, 1, 10 * 1000);
+    cam = new Camera(this, width / 2, height / 2, 5000, 1, 10 * 1000);
     cam.aim(width / 2, height / 2, 0);
     
     vertexShader = new GLSLShader(this, "ls.vert", "ls.frag");
     phongShader = new GLSLShader(this, "ps.vert", "ps.frag");
     canvas = new GLGraphicsOffScreen(this, width, height);
     
-    light = new PVector(0, 0);
+    backgroundTex = new GLTexture(this, "background.jpg");
+    cloudTex = new GLTexture(this, "cloud.png");
+    
+    light = new PVector(0.5, 0.5);
     
     // Zweites Fenster für die Slider in 2D
     controlFrame = new PFrame(this);
@@ -78,20 +86,20 @@ public void setup()
     font = new RFont("lucon.ttf", 32, RFont.CENTER);
     
     // Font für Statusanzeige
-    textFont(createFont("Courier", 12));
+    controlWindow.textFont(createFont("Courier", 12));
     
     // Fluid
     initMinim();
     fluid = new Fluid(this);
     
     // Partikelsystem mit maximal 1000 Partikeln erstellen
-    emitter = new ParticleSystem(this, maxParticles);
-    emitter.enableGravity(0);
-    emitter.addGlobalVelocity(0, 0, 0);
-    force = new ForceField(new PVector (width / 2, height / 2, 0)).setRadius(50).setStrength(100).show();
-    emitter.addForceField(force);
+    cloud = new CharCloud(this, maxParticles);
+    cloud.enableGravity(0);
+    cloud.addGlobalVelocity(0, 0, 0);
+    force = new ForceField(new PVector (width / 2, height / 2, 5000)).setRadius(50).setStrength(100).show();
+    cloud.addForceField(force);
     
-    createCharacterDistribution();
+    initDistributionGraph();
     
     // Shader stuff
     exposure = 1;
@@ -104,7 +112,8 @@ public void setup()
 /////////////////////////////////////////////////
 
 public void draw() {
-    background(65, 95, 170);        
+    // background(65, 95, 170);   
+    background(0, 0, 0);
 
     // Fluid
     if (showFluid) {
@@ -115,6 +124,9 @@ public void draw() {
     // Lichter
     ambient(250, 250, 250);
     pointLight(255, 255, 255, 500, height/2, 400);
+    
+    // Statischer Hintergrund
+    // image(backgroundTex, 0, 0, width, height);
     
     // // OpenGL Motion Blur
     // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
@@ -136,24 +148,34 @@ public void draw() {
             Particle p = new Particle();
             ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);
             p.addForceField(attraction);
-            attraction.influence(emitter.getParticles());
+            attraction.influence(cloud.getParticles());
             force.influence(p);
 
-            emitter.addParticle(p, mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BounceOffWalls(0)).setLifeSpan(random(1000));
+            cloud.addParticle(p, mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BounceOffWalls(0)).setLifeSpan(random(1000));
             p.addBehavior(new Friction(0.01));
         }
         if (applyShaders) {
             // Postprocessing Filter, der so tut als wenn Licht hinter den Buchstaben wäre und diese überstrahlt
             canvas.beginDraw();
-                canvas.background(65, 95, 170);
+                // Die alten Pixel durch transparente ersetzen, sodass der Hintergrund sichtbar bleibt
+                canvas.clear(0);
                 // Lichter
-                ambient(250, 250, 250);
-                pointLight(255, 255, 255, 500, height/2, 400);
+                ambient(0, 0, 250);
+                pointLight(175, 189, 255, width / 2, height/2, 9000);
                 // Kamera
                 cam.dolly(dollyStep);
                 cam.feed();
+                // Wolken
+                // canvas.tint(255, 192);
+                // for (int i = 0; i < 10; i++) {
+                //     canvas.pushMatrix();
+                //         canvas.translate(0, 0, i * 1000);
+                //         canvas.image(cloudTex, 0, 0, cloudTex.width * i, cloudTex.height * i);
+                //     canvas.popMatrix();
+                // }
+                    
                 // Partikelsystem zeichnen
-                emitter.updateAndDraw(canvas);
+                cloud.updateAndDraw(canvas);
             canvas.endDraw();
 
             vertexShader.start();
@@ -164,16 +186,29 @@ public void draw() {
                 vertexShader.setVecUniform("lightPositionOnScreen", light.x, light.y);
                 image(canvas.getTexture(), 0, 0, width, height);
             vertexShader.stop();
+            
         } else {
             // Partikelsystem zeichnen
-            emitter.updateAndDraw();
+            // Kamera
+            cam.dolly(dollyStep);
+            cam.feed();
+            cloud.updateAndDraw();
         }
-    }
-    // Statusanzeigen mit FPS, Anzahl der Partikel
-    if (showDebug) debug();   
+    }  
     
     // Zweites Fenster mit Slidern
-    controlWindow.redraw(); 
+    // stroke(255);
+    // fill(0);
+    // pushMatrix();
+    // translate(mouseX, mouseY, 100);
+    // GLGraphics renderer = (GLGraphics)g;
+    //   renderer.beginGL();
+    //     renderer.model(distributionGraph);
+    //   renderer.endGL();
+    // popMatrix();
+    
+    // Statusanzeigen mit FPS, Anzahl der Partikel
+    if (showDebug) debug();
 }
 
 /////////////////////////////////////////////////
@@ -192,8 +227,8 @@ public void drawParticle (Particle p) {
             float angle = atan2(p.y - height / 2, p.x - width / 2);
             canvas.pushMatrix();
                 canvas.translate(p.x, p.y, p.z);
-                canvas.rotate(angle);
-                canvas.rotate(-HALF_PI);
+                // canvas.rotate(angle);
+                // canvas.rotate(-HALF_PI);
                 ((CharParticle) p).draw(canvas); 
             canvas.popMatrix(); 
         } 
@@ -225,65 +260,29 @@ public void drawParticle (Particle p) {
     }
 }
 
-// Buchstabenverteilung erstellen
-public void createCharacterDistribution () 
-{
-    int onePercent = emitter.getMaxParticles() / 100;
+void initDistributionGraph() {
+    distributionGraph = new GLModel(this, Distribution.getCount(), LINE_STRIP, GLModel.STATIC);
+    distributionGraph.beginUpdateVertices();
+    
+    int index = 0;
     HashMap<String, Float> d = Distribution.getDistribution();
     Iterator it = d.entrySet().iterator();
     while (it.hasNext()) 
     {
         Map.Entry pairs = (Map.Entry) it.next();
-        
-        char c;
-        for (int i = 0; i < 1 + (Float) pairs.getValue() * onePercent; i++) {
-            if ((int) random(1) == 0) {
-                c = ((String) pairs.getKey()).charAt(0);
-            } else {
-                c = (((String) pairs.getKey()).toLowerCase()).charAt(0); 
-            }
-            ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);            
-            CharParticle p = new CharParticle(this, c);
-            p.addForceField(attraction);
-            attraction.influence(emitter.getParticles());
-            force.influence(p);
-            
-            emitter.addParticle(p, random(width), random(height), random(-1000, 1000)).randomizeVelocity(1).addBehavior(new BounceOffWalls(100000)).setLifeSpan(random(10000000));
-            p.addBehavior(new Friction(0.01));
-        } 
+        char c = ((String) pairs.getKey()).charAt(0);
+        float value = (Float) pairs.getValue();
+        float size = 4;
+        float x = (width / 2 + sin(TWO_PI / Distribution.getCount() * index) * (2 + width / value));
+        float y = (height / 2 + cos(TWO_PI / Distribution.getCount() * index) * (2 + height / value));
+        distributionGraph.updateVertex(index++, x, y, value);
     }
+    distributionGraph.endUpdateVertices();
+    distributionGraph.initColors();
+    distributionGraph.setColors(255);
 }
-
 public void transcribe (String word, float confidence) {
-    // formWord(word.toUpperCase(), new PVector(0, 0, 0));
-}
-
-public void formWord (String word, PVector pos) {
-    for (int i = 0; i < word.length(); i++) {
-        char c = word.charAt(i);
-        boolean found = false;
-        CharParticle p = getParticleForChar(c);
-        ForceField attraction = new ForceField(new PVector(pos.x + i * p.w + 10, pos.y, pos.z)).setRadius(1000).setStrength(10);
-        emitter.addForceField(attraction);
-        attraction.influence(p);
-        println("added " + c);
-    }
-}
-
-CharParticle getParticleForChar(char c) {
-    for (int i = 0; i < emitter.getParticleCount(); i++) {
-        if (emitter.getParticles().get(i) instanceof CharParticle) {
-            CharParticle p = (CharParticle) emitter.getParticles().get(i);
-            if (p.character == c && !p.used) {
-                p.used = true;
-                return p;   
-            }
-        }
-    }
-    CharParticle p = new CharParticle(this, c);
-    emitter.addParticle(p, random(width), random(height), random(100)).setLifeSpan(random(1000));
-    p.used = true;
-    return p;
+    cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2]));
 }
 public void initMinim () {
     // Minim entweder mit Mikrofon oder MP3 benutzen
@@ -322,16 +321,17 @@ public void disturb() {
 public void keyPressed () {
     if (key == 'f') showFluid = !showFluid;
     if (key == 'p') showParticles = !showParticles;
-    if (key == 'e') formWord("Essen", new PVector(mouseX, mouseY, 100));
+    if (key == 'e') cloud.formWord("Essen", new PVector(mouseX, mouseY, cam.position()[2]));
     if (key == 's') applyShaders = !applyShaders;
+    println(cam.position()[2]);
     println(frameRate);
 }
 
 public void debug () {
-    controlWindow.noStroke();
-    controlWindow.fill(255);
-    controlWindow.text("particles: " + emitter.getParticleCount(), width - 120, height - 40); 
-    controlWindow.text("framerate: " + (int) frameRate, width - 120, height - 20); 
+    stroke(255);
+    fill(255);
+    text("particles: " + cloud.getParticleCount(), 10, 10); 
+    text("framerate: " + (int) frameRate, 10, 30); 
 }
 
 public void stop() 

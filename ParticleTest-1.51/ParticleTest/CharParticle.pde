@@ -1,17 +1,21 @@
 class CharParticle extends Particle
 {
-    RShape shp;
-    RPoint[][] pnts;
-    RMesh m1;
-    float w;
+    boolean fxSpin = false;
+    boolean flat = false;
     boolean used = false;
     char character;
-    float spin = random(-1, 1);
-    int rx, ry;
-    boolean flat = false;
     float extrusion = 3;
+    float spin = random(-0.2, 0.2);
+    float spinAccel = random(-0.005, 0.005);
+    float maxSpin = 1;
+    float width;
     GLModel vertices;
+    float rx, ry;
     PApplet p;
+    RMesh m1;
+    RPoint[][] pnts;
+    RShape shp;
+
 
     CharParticle (PApplet p, char c) {
       super();
@@ -52,6 +56,8 @@ class CharParticle extends Particle
         
         vertices = new GLModel(p, verticeCount, TRIANGLE_STRIP, GLModel.DYNAMIC);
         generateModel();
+        calcWidth();
+        
     }
 
     void draw() 
@@ -64,15 +70,15 @@ class CharParticle extends Particle
           text(character, 0, 0);
         } 
         else { 
-            spin -= 0.01;
             
-            if (!used) {
-                rx += PI/9;
-                ry += PI/5 + spin;
-            
-                rotateY(sin(spin));
-                rotateY(PI/5 + spin);
+            if (fxSpin && spin < 3) {
+                spin *= spinAccel;
+            } else if (!fxSpin && spin != 0){
+                spin /= spinAccel;
             }
+            
+            ry += spin;
+            rotateY(spin);
             
             for (int i = 0; i < pnts.length; i++) {
                  beginShape(QUAD_STRIP);
@@ -80,7 +86,6 @@ class CharParticle extends Particle
                  {
                      vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
                      vertex(pnts[i][ii].x, pnts[i][ii].y, extrusion);
-                     if (pnts[i][ii].x > w) w = pnts[i][ii].x;
                  }
                  endShape(CLOSE);
             
@@ -96,20 +101,25 @@ class CharParticle extends Particle
         canvas.pushMatrix();   
         
         // flat = (z < 0) ? true : false;
-
+        
         if (flat) {
           canvas.text(character, 0, 0);
         } 
         else { 
-            spin -= 0.01;
-            
-            if (!used) {
-                rx += PI/9;
-                ry += PI/5 + spin;
-            
-                canvas.rotateY(sin(spin));
-                canvas.rotateY(PI/5 + spin);
+            // am I stupid?
+            if (fxSpin && Math.abs(spin) < maxSpin) {
+                spin += spinAccel;
+            } else if (!fxSpin && spin != 0){
+                spin -= spinAccel;
+            } else {
+
             }
+            
+            if (fxSpin) {
+                ry += spin;
+                canvas.rotateY(ry);
+            }
+            
             
            for (int i = 0; i < pnts.length; i++) {
                 canvas.beginShape(QUAD_STRIP);
@@ -117,7 +127,6 @@ class CharParticle extends Particle
                 {
                     canvas.vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
                     canvas.vertex(pnts[i][ii].x, pnts[i][ii].y, extrusion);
-                    if (pnts[i][ii].x > w) w = pnts[i][ii].x;
                 }
                 canvas.endShape(CLOSE);
            
@@ -126,7 +135,7 @@ class CharParticle extends Particle
            drawFace(canvas);
            canvas.translate(0, 0, extrusion);
            drawFace(canvas);
-
+        
             // 
             // canvas.beginGL();
             // canvas.fill(255);
@@ -166,11 +175,28 @@ class CharParticle extends Particle
         vertices.initColors();
         vertices.setColors(255);
     }
+    private void calcWidth () {
+        for (int i = 0; i < pnts.length; i++) {
+             for (int ii = 0; ii < pnts[i].length; ii++)
+             {
+                 if (pnts[i][ii].x > this.width) this.width = pnts[i][ii].x;
+             }        
+        }
+    }
+    public float getWidth () {
+        return this.width;
+    }
+    public void enableFXSpin() {
+        fxSpin = true;
+    }
+    public void disableFXSpin () {
+        fxSpin = false;
+    }
       
     void resetRotation() 
     {
-        rotateX(-rx);
-        rotateY(-ry);
+        canvas.rotateX(-rx);
+        canvas.rotateY(-ry);
     }
 }
 

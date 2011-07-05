@@ -73,5 +73,8 @@ public static class Distribution
     static float getChar (String c) {
         return distribution.get(c);
     }
+    static int getCount() {
+        return distribution.size();
+    }
 
 }

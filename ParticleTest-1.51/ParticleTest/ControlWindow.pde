@@ -35,7 +35,7 @@ public class ControlWindow extends PApplet
         s.setMaxY(1.0);
         s.setId(13);
         
-        controlP5.addSlider("dolly step", -20, 20, 5, 10, 465, 100, 20).setId(14);
+        controlP5.addSlider("dolly step", -20, 20, -5, 10, 465, 100, 20).setId(14);
     
     }
 

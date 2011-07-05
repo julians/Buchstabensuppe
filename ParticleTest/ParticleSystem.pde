@@ -90,7 +90,6 @@ class ParticleSystem
             updateParticle(p);
             drawParticle(p);
         } else {
-            println("remove");
             removeParticle(p);
         }
     }
@@ -124,7 +123,6 @@ class ParticleSystem
         } else {
             // todo: kill old particle or wait?
             particles.add(particle);
-            println("added");
             return particle;
         }
     }

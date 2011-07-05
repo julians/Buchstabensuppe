@@ -176,43 +176,43 @@ void createCharacterDistribution () {
 //     formWord(word.toUpperCase());
 // }
 
-void formWord (String word) {
-    for (int i = 0; i < word.length(); i++) {
-        char c = word.charAt(i);
-        boolean found = false;
-        for (int j = 0; j < emitter.getParticles().size(); j++) {
-            ModelParticle buh = (ModelParticle) emitter.getParticles().get(j);
-               
-                if (buh.character != (c)) {
-                 emitter.removeParticle(buh);
-                } else if (!found && buh.character == (c)){
-                    // emitter.clearForces(buh);
-                    ForceField attraction = new ForceField(new PVector (width / 2 + i * 20, height / 2 + i * 20, 100)).setRadius(1000).setStrength(100);
-                    emitter.addForceField(attraction);
-                    attraction.influence(buh);
-                    // buh.addBehavior(new Friction(0.1));
-                    found = true;
-                    println("already here: " + c + " // " + buh.position + " // " + buh.velocity);
-                }
-          
-        }
-        if (!found) {
-            // Model laden
-            model = (PShape3D)loadShape(c + ".obj");
-            // model.scaleVertices(0.2);
-            // model.rotateVerticesX(-PI);
-            
-            ModelParticle buh = new ModelParticle(model, c);
-            emitter.addParticle(buh, random(width), random(height), random(100)).randomizeVelocity(1).setLifeSpan(random(10000000));
-            ForceField attraction = new ForceField(new PVector (width / 2 + i * 20, height / 2, 100)).setRadius(1000).setStrength(10);
-            emitter.addForceField(attraction);
-            attraction.influence(buh);
-            //buh.addBehavior(new Friction(0.1));
-            println(c);
-        }
-
-    }
-}
+// void formWord (String word) {
+//     for (int i = 0; i < word.length(); i++) {
+//         char c = word.charAt(i);
+//         boolean found = false;
+//         for (int j = 0; j < emitter.getParticles().size(); j++) {
+//             ModelParticle buh = (ModelParticle) emitter.getParticles().get(j);
+//                
+//                 if (buh.character != (c)) {
+//                  emitter.removeParticle(buh);
+//                 } else if (!found && buh.character == (c)){
+//                     // emitter.clearForces(buh);
+//                     ForceField attraction = new ForceField(new PVector (width / 2 + i * 20, height / 2 + i * 20, 100)).setRadius(1000).setStrength(100);
+//                     emitter.addForceField(attraction);
+//                     attraction.influence(buh);
+//                     // buh.addBehavior(new Friction(0.1));
+//                     found = true;
+//                     println("already here: " + c + " // " + buh.position + " // " + buh.velocity);
+//                 }
+//           
+//         }
+//         if (!found) {
+//             // Model laden
+//             model = (PShape3D)loadShape(c + ".obj");
+//             // model.scaleVertices(0.2);
+//             // model.rotateVerticesX(-PI);
+//             
+//             ModelParticle buh = new ModelParticle(model, c);
+//             emitter.addParticle(buh, random(width), random(height), random(100)).randomizeVelocity(1).setLifeSpan(random(10000000));
+//             ForceField attraction = new ForceField(new PVector (width / 2 + i * 20, height / 2, 100)).setRadius(1000).setStrength(10);
+//             emitter.addForceField(attraction);
+//             attraction.influence(buh);
+//             //buh.addBehavior(new Friction(0.1));
+//             println(c);
+//         }
+// 
+//     }
+// }
 void sliderEvent (Slider s) {
     if (s.id == "radius") {
         force.setRadius(s.getValue());
@@ -261,7 +261,8 @@ public void disturb() {
 public void keyPressed () {
     if (key == 'f') showFluid = !showFluid;
     if (key == 'p') showParticles = !showParticles;
-    if (key == 'w') formWord("ESSEN");
+    if (key == 'w') cloud.formWord("Essen", new PVector(mouseX, mouseY, cam.position()[2]));
+    println(cam.position()[2])
     println(frameRate);
 }
 
