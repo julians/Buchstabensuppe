@@ -1,5 +1,6 @@
 import java.net.URL;
 import java.util.Scanner;
+import com.google.gson.*;
 
 class NGramGetter
 {

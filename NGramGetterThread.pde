@@ -8,6 +8,7 @@ class NGramGetterThread extends Thread
     PApplet p;
     String word;
     Method nGramFoundEvent;
+    Gson gson;
     //String baseURL = "http://misc.local/kuppel/?word=";
     String baseURL = "http://julianstahnke.com/fhp/ngram/?word=";
     
@@ -15,6 +16,7 @@ class NGramGetterThread extends Thread
     {
         this.p = p;
         this.word = word;
+        this.gson = new Gson();
         
         try {
 			this.nGramFoundEvent = p.getClass().getMethod("nGramFound", NGram.class);
@@ -35,6 +37,11 @@ class NGramGetterThread extends Thread
             NGram ngram = null;
             try {
                 URL url = new URL(baseURL + this.word);
+                // Gson
+                String r = new Scanner(url.openStream()).useDelimiter(";").next();
+                Response response = new Gson().fromJson(r, Response.class);
+                // println("response");
+                // oldschool
                 Scanner scanner = new Scanner(url.openStream()).useDelimiter(";");
                 String success = scanner.next();
                 String return_word = scanner.next();
@@ -44,9 +51,7 @@ class NGramGetterThread extends Thread
                 int i = 0;
                 while (valueScanner.hasNext()) {
                     String j = valueScanner.next();
-                    println(j);
                     String[] v = j.split(":");
-                    println(v);
                     raw_values[i] = Integer.parseInt(v[0]);
                     values[i] = Float.valueOf(v[1]).floatValue();
                     i++;
