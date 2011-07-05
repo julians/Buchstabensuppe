@@ -11,9 +11,11 @@ import damkjer.ocd.*;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import geomerative.*;
+import netP5.*;
+import oscP5.*;
 import processing.opengl.*;
 
-
+  
 AudioInput microphone;
 AudioPlayer sample;
 Camera cam;
@@ -23,17 +25,21 @@ FFT fftLog;
 Fluid fluid;
 ForceField force;
 GLGraphicsOffScreen canvas;
-GLTexture backgroundTex;
-GLTexture cloudTex;
 GLModel distributionGraph;
 GLSLShader phongShader;
 GLSLShader vertexShader;
+GLTexture backgroundTex;
+GLTexture cloudTex;
 Minim minim;
+NetAddress myRemoteLocation;
+OscP5 oscP5;
 PFrame controlFrame;
 PVector light;
 RFont font;
 Slider2D s;
 STT stt;
+Timeline timeline;
+
 
 boolean dome = false;
 boolean mic = true;
@@ -41,6 +47,7 @@ boolean applyShaders = true;
 boolean showDebug = true;
 boolean showFluid = false;
 boolean showParticles = true;
+boolean showTimeline = false;
 
 float exposure, decay, density, weight;
 float fluidSize = 2;
@@ -51,19 +58,23 @@ int maxParticles = 100;
 
 public void setup() 
 {
+    // Grafik
     if (dome) {
         size(1920, 1920, GLConstants.GLGRAPHICS);
     } else {
         size(800, 800, GLConstants.GLGRAPHICS);   
     }
-    
-    frameRate(60);
+    frameRate(30);
     hint(ENABLE_OPENGL_4X_SMOOTH);
+    
+    // OSC
+    oscP5 = new OscP5(this,12000);
     
     // Kamera
     cam = new Camera(this, width / 2, height / 2, 5000, 1, 10 * 1000);
     cam.aim(width / 2, height / 2, 0);
     
+    // Shader
     vertexShader = new GLSLShader(this, "ls.vert", "ls.frag");
     phongShader = new GLSLShader(this, "ps.vert", "ps.frag");
     canvas = new GLGraphicsOffScreen(this, width, height);
@@ -78,7 +89,7 @@ public void setup()
     
     // STT
     stt = new STT(this, false);
-    stt.enableDebug();
+    // stt.enableDebug();
     stt.setLanguage("de");
     
     // Font für geomerative
@@ -89,17 +100,17 @@ public void setup()
     controlWindow.textFont(createFont("Courier", 12));
     
     // Fluid
-    initMinim();
+    // initMinim();
     fluid = new Fluid(this);
     
-    // Partikelsystem mit maximal 1000 Partikeln erstellen
+    // Partikelsystem erstellen
     cloud = new CharCloud(this, maxParticles);
     cloud.enableGravity(0);
     cloud.addGlobalVelocity(0, 0, 0);
     force = new ForceField(new PVector (width / 2, height / 2, 5000)).setRadius(50).setStrength(100).show();
     cloud.addForceField(force);
     
-    initDistributionGraph();
+    timeline = new Timeline();
     
     // Shader stuff
     exposure = 1;
@@ -113,7 +124,7 @@ public void setup()
 
 public void draw() {
     // background(65, 95, 170);   
-    background(0, 0, 0);
+    background(0);
 
     // Fluid
     if (showFluid) {
@@ -159,6 +170,7 @@ public void draw() {
             canvas.beginDraw();
                 // Die alten Pixel durch transparente ersetzen, sodass der Hintergrund sichtbar bleibt
                 canvas.clear(0);
+                canvas.background(0);
                 // Lichter
                 ambient(0, 0, 250);
                 pointLight(175, 189, 255, width / 2, height/2, 9000);
@@ -176,6 +188,12 @@ public void draw() {
                     
                 // Partikelsystem zeichnen
                 cloud.updateAndDraw(canvas);
+                if (showTimeline) {
+                    canvas.pushMatrix();
+                        canvas.translate(mouseX, mouseY, 5000);
+                        timeline.draw(canvas);
+                    canvas.popMatrix();
+                }
             canvas.endDraw();
 
             vertexShader.start();
@@ -195,18 +213,7 @@ public void draw() {
             cloud.updateAndDraw();
         }
     }  
-    
-    // Zweites Fenster mit Slidern
-    // stroke(255);
-    // fill(0);
-    // pushMatrix();
-    // translate(mouseX, mouseY, 100);
-    // GLGraphics renderer = (GLGraphics)g;
-    //   renderer.beginGL();
-    //     renderer.model(distributionGraph);
-    //   renderer.endGL();
-    // popMatrix();
-    
+        
     // Statusanzeigen mit FPS, Anzahl der Partikel
     if (showDebug) debug();
 }
@@ -281,8 +288,18 @@ void initDistributionGraph() {
     distributionGraph.initColors();
     distributionGraph.setColors(255);
 }
-public void transcribe (String word, float confidence) {
-    cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2]));
+public void transcribe (String word, float confidence, int status) {
+    switch (status) {
+        case STT.SUCCESS:
+            cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2]));       
+            break;
+        case STT.RECORDING:
+            cloud.reactOnRecord();
+            break;
+        case STT.ERROR:
+            cloud.reactOnError();
+            break;
+    }
 }
 public void initMinim () {
     // Minim entweder mit Mikrofon oder MP3 benutzen
@@ -323,8 +340,18 @@ public void keyPressed () {
     if (key == 'p') showParticles = !showParticles;
     if (key == 'e') cloud.formWord("Essen", new PVector(mouseX, mouseY, cam.position()[2]));
     if (key == 's') applyShaders = !applyShaders;
+    if (key == 't') showTimeline = !showTimeline;
     println(cam.position()[2]);
     println(frameRate);
+}
+
+void oscEvent(OscMessage theOscMessage) {
+    if (theOscMessage.addrPattern() == "status") {
+        transcribe(theOscMessage.get(0).stringValue(), theOscMessage.get(1).floatValue(), theOscMessage.get(2).intValue());        
+    } else if (theOscMessage.addrPattern() == "ngram") {
+        String word = theOscMessage.get(0).stringValue();
+        println("ngram! " + word);
+    }
 }
 
 public void debug () {

@@ -5,8 +5,9 @@ class CharParticle extends Particle
     boolean used = false;
     char character;
     float extrusion = 3;
-    float spin = random(-0.2, 0.2);
-    float spinAccel = random(-0.005, 0.005);
+    float spin = random(0.2);
+    float spinAccel;
+    float spinAccelStart;
     float maxSpin = 1;
     float width;
     GLModel vertices;
@@ -28,7 +29,7 @@ class CharParticle extends Particle
     { 
         shp = font.toShape(this.character);
         RCommand.setSegmentator(RCommand.UNIFORMSTEP);
-        RCommand.setSegmentStep(0.5);
+        RCommand.setSegmentStep(1);
         RCommand.setSegmentAngle(HALF_PI);
         pnts = shp.getPointsInPaths();
         m1 = shp.toMesh();
@@ -54,9 +55,11 @@ class CharParticle extends Particle
         //      }
         // }
         
-        vertices = new GLModel(p, verticeCount, TRIANGLE_STRIP, GLModel.DYNAMIC);
-        generateModel();
+        // vertices = new GLModel(p, verticeCount, TRIANGLE_STRIP, GLModel.DYNAMIC);
+        // generateModel();
         calcWidth();
+        spinAccel = random(0.005);
+        spinAccelStart = spinAccel;
         
     }
 
@@ -103,39 +106,38 @@ class CharParticle extends Particle
         // flat = (z < 0) ? true : false;
         
         if (flat) {
-          canvas.text(character, 0, 0);
+            canvas.text(character, 0, 0);
         } 
-        else { 
-            // am I stupid?
+        else 
+        { 
+            // stupid
             if (fxSpin && Math.abs(spin) < maxSpin) {
                 spin += spinAccel;
             } else if (!fxSpin && spin != 0){
                 spin -= spinAccel;
+                println("decrease speed");
             } else {
 
             }
+            ry += spin;
+            if(ry > 0) canvas.rotateY(ry);
+            else ry = 0;
             
-            if (fxSpin) {
-                ry += spin;
-                canvas.rotateY(ry);
+            for (int i = 0; i < pnts.length; i++) {
+                 canvas.beginShape(QUAD_STRIP);
+                 for (int ii = 0; ii < pnts[i].length; ii++)
+                 {
+                     canvas.vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
+                     canvas.vertex(pnts[i][ii].x, pnts[i][ii].y, extrusion);
+                 }
+                 canvas.endShape(CLOSE);
+           
             }
-            
-            
-           for (int i = 0; i < pnts.length; i++) {
-                canvas.beginShape(QUAD_STRIP);
-                for (int ii = 0; ii < pnts[i].length; ii++)
-                {
-                    canvas.vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
-                    canvas.vertex(pnts[i][ii].x, pnts[i][ii].y, extrusion);
-                }
-                canvas.endShape(CLOSE);
            
-           }
-           
-           drawFace(canvas);
-           canvas.translate(0, 0, extrusion);
-           drawFace(canvas);
-        
+            drawFace(canvas);
+            canvas.translate(0, 0, extrusion);
+            drawFace(canvas);
+            
             // 
             // canvas.beginGL();
             // canvas.fill(255);
@@ -186,11 +188,13 @@ class CharParticle extends Particle
     public float getWidth () {
         return this.width;
     }
-    public void enableFXSpin() {
+    public void startFXSpin() {
         fxSpin = true;
+        spinAccel = spinAccelStart;
     }
-    public void disableFXSpin () {
+    public void stopFXSpin () {
         fxSpin = false;
+        spinAccel = spinAccelStart;
     }
       
     void resetRotation() 

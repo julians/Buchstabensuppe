@@ -2,7 +2,7 @@ public class CharCloud extends ParticleSystem
 {
     HashMap<String, Word> words;
     PVector target;
-    int letterspacing = 10;
+    int letterspacing = 20;
     
     public CharCloud (PApplet p5) {
         this(p5, -1);
@@ -52,15 +52,40 @@ public class CharCloud extends ParticleSystem
     }
     
     public void formWord (String word, PVector pos) {
+        println(word);
         target = pos;
         PVector displace = new PVector(0, 0, 0);
         for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
             CharParticle p = getParticleForChar(c);
             p.tweenTo(PVector.add(pos, displace));
-            displace.add(new PVector(p.width + letterspacing, 0, 0));
+            displace.add(new PVector(letterspacing, 0, 0));
             p.disableForces();
-            // p.resetRotation();
+            p.resetRotation();
+        }
+        stopFXSpin();
+    }
+    public void reactOnRecord () {
+        for (int i = 0; i < particles.size(); i++) {
+            if (particles.get(i) instanceof CharParticle) {
+                CharParticle p = (CharParticle) particles.get(i);
+                if (!p.used) {
+                    p.startFXSpin(); 
+                }
+            }
+        }
+    }
+    public void reactOnError () {
+        stopFXSpin();
+    }
+    public void stopFXSpin () {
+        for (int i = 0; i < particles.size(); i++) {
+            if (particles.get(i) instanceof CharParticle) {
+                CharParticle p = (CharParticle) particles.get(i);
+                if (!p.used) {
+                    p.stopFXSpin(); 
+                }
+            }
         }
     }
 

@@ -95,7 +95,6 @@ class Particle
     public void tweenTo (PVector target) {
         this.target = target;
         this.useTarget = true;
-        println("tween to " + target);
     }
     public void updatePosition () {
         x = position.x;

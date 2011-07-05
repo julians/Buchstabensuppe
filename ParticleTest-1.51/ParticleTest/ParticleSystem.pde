@@ -131,10 +131,16 @@ class ParticleSystem
         particle.init(x, y, z, vx, vy, vz);
         if (maxParticles == -1 || particles.size() < maxParticles) {
             particles.add(particle);
+            for (int i = 0; i < forces.size(); i++) {
+                forces.get(i).influence(particle);
+            }
             return particle;
         } else {
             // todo: kill old particle or wait?
             particles.add(particle);
+            for (int i = 0; i < forces.size(); i++) {
+                forces.get(i).influence(particle);
+            }
             return particle;
         }
     }
@@ -174,6 +180,9 @@ class ParticleSystem
     ForceField addForceField (ForceField f) 
     {
         this.forces.add(f);
+        for (int i = 0; i < particles.size(); i++) {
+            f.influence(particles.get(i));
+        }
         return f;
     }
     void clearForces (Particle p) {

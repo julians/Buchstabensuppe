@@ -16,7 +16,7 @@ public class ControlWindow extends PApplet
         controlP5 = new ControlP5(this);
         //// Slider für das ForceField
         controlP5 = new ControlP5(this);
-        controlP5.addSlider("radius", 0, 1000, 100, 10, 40, 100, 20).setId(1);
+        controlP5.addSlider("radius", 0, 5000, 100, 10, 40, 100, 20).setId(1);
         controlP5.addSlider("strength", -50, 50, 10, 10, 65, 100, 20).setId(2);
         controlP5.addSlider("ramp", 0, 2, 1, 10, 90, 100, 20).setId(3);
         controlP5.addSlider("fade speed", 0, 0.1, 0.05, 10, 115, 100, 20).setId(4);
@@ -35,7 +35,7 @@ public class ControlWindow extends PApplet
         s.setMaxY(1.0);
         s.setId(13);
         
-        controlP5.addSlider("dolly step", -20, 20, -5, 10, 465, 100, 20).setId(14);
+        controlP5.addSlider("dolly step", -50, 50, 5, 10, 465, 100, 20).setId(14);
     
     }
 
