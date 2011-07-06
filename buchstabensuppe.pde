@@ -199,9 +199,9 @@ int getIndexForChar (char c) {
 }
 
 // Method is called if transcription was successfull 
-void transcribe (String utterance, float confidence) 
+void transcribe (String utterance, float confidence, int status) 
 {
-  println(utterance);
+  println(status);
   result = utterance;
   formWord(utterance);
 }

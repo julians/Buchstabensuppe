@@ -13,7 +13,7 @@ class ParticleSystem
 
     ParticleSystem(PApplet p5) 
     {
-        this(p5, 200);
+        this(p5, -1); // -1 = unlimited particles
     }
     ParticleSystem (PApplet p5, int max) 
     {
@@ -59,6 +59,18 @@ class ParticleSystem
             f.apply();
         }
     }
+    void updateAndDraw(GLGraphicsOffScreen canvas) 
+    {
+        for (int i = 0; i < particles.size(); i++) {
+            Particle p = particles.get(i);
+            updateAndDrawParticle(p);
+        }
+        for (int i = 0; i < forces.size(); i++) {
+            ForceField f = forces.get(i);
+            if (f.visible) f.draw(canvas);
+            f.apply();
+        }
+    }
     public void drawParticle(Particle p) 
     {   
         // uses the drawParticle method in the main program
@@ -90,7 +102,6 @@ class ParticleSystem
             updateParticle(p);
             drawParticle(p);
         } else {
-            println("remove");
             removeParticle(p);
         }
     }
@@ -118,13 +129,18 @@ class ParticleSystem
     Particle addParticle (Particle particle, float x, float y, float z, float vx, float vy, float vz) 
     {
         particle.init(x, y, z, vx, vy, vz);
-        if (particles.size() < maxParticles) {
+        if (maxParticles == -1 || particles.size() < maxParticles) {
             particles.add(particle);
+            for (int i = 0; i < forces.size(); i++) {
+                forces.get(i).influence(particle);
+            }
             return particle;
         } else {
             // todo: kill old particle or wait?
             particles.add(particle);
-            println("added");
+            for (int i = 0; i < forces.size(); i++) {
+                forces.get(i).influence(particle);
+            }
             return particle;
         }
     }
@@ -164,6 +180,9 @@ class ParticleSystem
     ForceField addForceField (ForceField f) 
     {
         this.forces.add(f);
+        for (int i = 0; i < particles.size(); i++) {
+            f.influence(particles.get(i));
+        }
         return f;
     }
     void clearForces (Particle p) {

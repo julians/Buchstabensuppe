@@ -1,25 +1,33 @@
 class Particle
 {
-    float x, y, z;
-    float vx, vy, vz;
-    PVector position;
-    PVector velocity;
-    float size;
-    float alpha;
-    float mass;
-    boolean alive;
-    float age;
-    float span;
-    float progress;
     ArrayList<Behavior> behaviors;
     ArrayList<ForceField> forces;
+    boolean alive;
+    boolean useForces;
+    boolean useTarget;
+    float age;
+    float alpha;
+    float mass;
+    float progress;
+    float size;
+    float span;
+    float vx, vy, vz;
+    float x, y, z;
+    PVector target;
+    PVector position;
+    PVector velocity;
+
     
-    Particle () 
+    public Particle () 
     {
         this.forces = new ArrayList<ForceField>();
     }
     
-    void init(float x, float y, float z, float vx, float vy, float vz) 
+    public Particle (PVector pos, PVector vel) {
+        this.init(pos, vel);
+    }
+    
+    public void init(float x, float y, float z, float vx, float vy, float vz) 
     {
         this.position = new PVector(x, y, z);
         this.updatePosition();
@@ -32,17 +40,25 @@ class Particle
         this.span = 1 + (int) random(100);
         this.behaviors = new ArrayList<Behavior>();
         this.progress = 0;
+        this.useForces = true;
+        this.useTarget = false;
+        this.target = new PVector();
     }
-    void init (PVector pos, PVector vel) 
+    public void init (PVector pos, PVector vel) 
     {
         this.init(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
     }
-    void update () 
+    public void update () 
     {
         age++;
         progress = age / span;
-        if (age > span) die();
+        if (age > span && span != -1) die();
         
+        if (useTarget) {
+            PVector dir = PVector.sub(target, position);
+            dir.mult(0.1);
+            velocity.set(dir);
+        }
         // update position
         position.add(velocity);
         
@@ -53,13 +69,15 @@ class Particle
         updatePosition();
         updateVelocity();
         
-        for (int i = 0; i < forces.size(); i++) {
-            ForceField f = forces.get(i);
-            f.setPosition(this.position);
-            f.apply();
+        if (useForces) {
+            for (int i = 0; i < forces.size(); i++) {
+                ForceField f = forces.get(i);
+                f.setPosition(this.position);
+                f.apply();
+            }   
         }
     }
-    void die () 
+    public void die () 
     {
         alive = false;
         forces.clear();
@@ -67,29 +85,33 @@ class Particle
     Particle randomizeVelocity (float range) {
         return setVelocity(random(-range, range), random(-range, range), random(-range, range));
     }
-    void addVelocity (float vx, float vy, float vz) {
+    public void addVelocity (float vx, float vy, float vz) {
         this.addVelocity(new PVector(vx, vy, vz));
     }
-    void addVelocity (PVector v) {
+    public void addVelocity (PVector v) {
         velocity.add(v);
         updateVelocity();
     }
-    void updatePosition () {
+    public void tweenTo (PVector target) {
+        this.target = target;
+        this.useTarget = true;
+    }
+    public void updatePosition () {
         x = position.x;
         y = position.y;
         z = position.z;
     }
-    void updateVelocity () {
+    public void updateVelocity () {
         vx = velocity.x;
         vy = velocity.y;
         vz = velocity.z;
     }
-    void setPosition (float x, float y, float z) 
+    public void setPosition (float x, float y, float z) 
     {
         position.set(x, y, z);
         updatePosition();
     }
-    void setPosition (PVector p) 
+    public void setPosition (PVector p) 
     {
         position = p;
         updatePosition();
@@ -100,7 +122,7 @@ class Particle
         updateVelocity();
         return this;
     }
-    void setSize (float s) 
+    public void setSize (float s) 
     {
         this.size = s;
     }
@@ -126,6 +148,12 @@ class Particle
     Particle removeForceField (ForceField f) {
         this.forces.remove(f);
         return this;
+    }
+    void enableForces () {
+        this.useForces = true;
+    }
+    void disableForces () {
+        this.useForces = false;
     }
 
     
