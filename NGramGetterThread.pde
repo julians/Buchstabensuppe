@@ -2,14 +2,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Scanner;
+import com.google.gson.*;
 
 class NGramGetterThread extends Thread
 {
     PApplet p;
     String word;
     Method nGramFoundEvent;
-    //String baseURL = "http://misc.local/kuppel/?word=";
-    String baseURL = "http://julianstahnke.com/fhp/ngram/?word=";
+    // String baseURL = "http://misc.local/kuppel/?format=json&word=";
+    String baseURL = "http://julianstahnke.com/fhp/ngram/?format=json&word=";
     
     NGramGetterThread (PApplet p, String word)
     {
@@ -35,23 +36,8 @@ class NGramGetterThread extends Thread
             NGram ngram = null;
             try {
                 URL url = new URL(baseURL + this.word);
-                Scanner scanner = new Scanner(url.openStream()).useDelimiter(";");
-                String success = scanner.next();
-                String return_word = scanner.next();
-                Scanner valueScanner = new Scanner(scanner.next()).useDelimiter(",");
-                int[] raw_values = new int[509];
-                float[] values = new float[509];
-                int i = 0;
-                while (valueScanner.hasNext()) {
-                    String j = valueScanner.next();
-                    println(j);
-                    String[] v = j.split(":");
-                    println(v);
-                    raw_values[i] = Integer.parseInt(v[0]);
-                    values[i] = Float.valueOf(v[1]).floatValue();
-                    i++;
-                }
-                ngram = new NGram(this.word, success == "1", values, raw_values);       
+                String r = new Scanner(url.openStream()).useDelimiter(";").next();
+                ngram = new Gson().fromJson(r, NGram.class);      
             } catch (MalformedURLException e) {
 
             } catch (IOException e) {

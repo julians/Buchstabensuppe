@@ -12,6 +12,10 @@ public class NGram
         this.raw_values = raw_values;
         this.values = values;
     }
+    public NGram()
+    {
+        
+    }
     public float getValueForYear(int year)
     {
         return this.values[year-1500];
