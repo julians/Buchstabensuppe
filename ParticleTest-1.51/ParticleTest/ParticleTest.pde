@@ -351,6 +351,47 @@ void oscEvent(OscMessage theOscMessage) {
     } else if (theOscMessage.addrPattern() == "ngram") {
         String word = theOscMessage.get(0).stringValue();
         println("ngram! " + word);
+    } else if (theOscMessage.addrPattern() == "/mrmr") {
+        controlP5.Controller controller;
+        float value = theOscMessage.get(0).floatValue() / 1000;
+        if (theOscMessage.addrPattern() == "/mrmr/slider/horizontal/0/Aaaqw") {
+            controller = controlWindow.controlP5.controller("radius");
+            controller.setValue(value * controller.max());
+        } 
+        else if (theOscMessage.addrPattern() == "/mrmr/slider/horizontal/1/Aaaqw") {
+            controller = controlWindow.controlP5.controller("strength");
+            controller.setValue(value * controller.max());
+        }
+        else if (theOscMessage.addrPattern() == "/mrmr/slider/horizontal/2/Aaaqw") {
+            controller = controlWindow.controlP5.controller("force z");
+            controller.setValue(value * controller.max());
+        }
+        else if (theOscMessage.addrPattern() == "/mrmr/slider/horizontal/3/Aaaqw") {
+            controller = controlWindow.controlP5.controller("exposure");
+            controller.setValue(value * controller.max());
+        }
+        else if (theOscMessage.addrPattern() == "/mrmr/slider/horizontal/4/Aaaqw") {
+            controller = controlWindow.controlP5.controller("density");
+            controller.setValue(value * controller.max());
+        }
+        else if (theOscMessage.addrPattern() == "/mrmr/slider/horizontal/5/Aaaqw") {
+            controller = controlWindow.controlP5.controller("decay");
+            controller.setValue(value * controller.max());
+        }
+        else if (theOscMessage.addrPattern() == "/mrmr/slider/horizontal/6/Aaaqw") {
+            controller = controlWindow.controlP5.controller("weight");
+            controller.setValue(value * controller.max());
+        }
+        else if (theOscMessage.addrPattern() == "/mrmr/slider/horizontal/7/Aaaqw") {
+            controller = controlWindow.controlP5.controller("dolly step");
+            controller.setValue(value * controller.max());
+        }
+        else if (theOscMessage.addrPattern() == "/mrmr/accelerometerX/8/Aaaqw") {
+            light.x = value;
+        }
+        else if (theOscMessage.addrPattern() == "/mrmr/accelerometer/8/Aaaqw") {
+            light.y = value;
+        }
     }
 }
 

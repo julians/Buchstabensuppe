@@ -31,7 +31,7 @@ void setup ()
     
     oscP5 = new OscP5(this,12001);
     myRemoteLocation = new NetAddress("192.168.10.101",12000);
-    
+
     // Some text to display the result
     textFont(createFont("Arial", 24));
     result = "Say something!";
