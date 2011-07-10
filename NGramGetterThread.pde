@@ -37,7 +37,8 @@ class NGramGetterThread extends Thread
             try {
                 URL url = new URL(baseURL + this.word);
                 String r = new Scanner(url.openStream()).useDelimiter(";").next();
-                ngram = new Gson().fromJson(r, NGram.class);      
+                ngram = new Gson().fromJson(r, NGram.class);
+                ngram.init();
             } catch (MalformedURLException e) {
 
             } catch (IOException e) {
