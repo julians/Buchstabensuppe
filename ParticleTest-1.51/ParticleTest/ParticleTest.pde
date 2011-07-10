@@ -102,8 +102,9 @@ public void setup()
     
     // STT
     stt = new STT(this, false);
-    // stt.enableDebug();
+    stt.enableDebug();
     stt.setLanguage("de");
+    stt.disableAutoRecord();
     
     // Font für geomerative
     RG.init(this);
@@ -168,11 +169,6 @@ public void draw() {
         disturb();
         fluid.draw();
     }
-    
-
-    
-    // Statischer Hintergrund
-    image(backgroundTex, 0, 0, width, height);
     
     // // OpenGL Motion Blur
     // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
@@ -256,6 +252,10 @@ public void draw() {
     // Statusanzeigen mit FPS, Anzahl der Partikel
     if (showDebug) debug();
     animateCamera();
+    
+    // Statischer Hintergrund
+    gl.glBlendFunc(gl.GL_DST_COLOR,gl.GL_ZERO);
+    image(backgroundTex, 0, 0, width, height);
 }
 
 /////////////////////////////////////////////////
@@ -331,7 +331,8 @@ void initDistributionGraph() {
 public void transcribe (String word, float confidence, int status) {
     switch (status) {
         case STT.SUCCESS:
-            cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2] + 100 * dollyStep));       
+            cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2] + 100 * dollyStep));  
+            // cam.aim(width / 2, height / 2, cam.position()[2] + 100 * dollyStep);     
             break;
         case STT.RECORDING:
             cloud.reactOnRecord();
@@ -343,7 +344,7 @@ public void transcribe (String word, float confidence, int status) {
 }
 public void initMinim () {
     // Minim entweder mit Mikrofon oder MP3 benutzen
-	minim = new Minim(this);
+	minim = stt.getMinimInstance();
 	if (mic) {
 	    microphone = minim.getLineIn(Minim.STEREO, 2048);
         fftLog = new FFT(microphone.bufferSize(), microphone.sampleRate());
@@ -354,6 +355,10 @@ public void initMinim () {
     	fftLog.logAverages(22, 3);
 	    sample.play();
 	}
+}
+
+void mouseMoved() {
+    // if (mousePressed) cam.circle(radians(mouseX - pmouseX));
 }
 
 public void disturb() {
@@ -376,13 +381,13 @@ public void disturb() {
 }
 
 public void animateCamera () {
-    if (mic) {
-        float volume = constrain(microphone.mix.level() * 100, 0.0, 0.9);
-	    if (volume > 0.3) {
-            // Lichtstrahlen raushauen
-            decay = volume;
-        }
-    } 
+   //  if (mic) {
+   //      float volume = constrain(microphone.mix.level() * 100, 0.0, 0.9);
+   //      if (volume > 0.3) {
+   //          // Lichtstrahlen raushauen
+   //          decay = volume;
+   //      }
+   //  } 
 }
 
 public void keyPressed () {
@@ -391,8 +396,12 @@ public void keyPressed () {
     if (key == 'e') cloud.formWord("Essen", new PVector(mouseX, mouseY, cam.position()[2]));
     if (key == 's') applyShaders = !applyShaders;
     if (key == 't') showTimeline = !showTimeline;
+    if (key == ' ') stt.begin();
     println(cam.position()[2]);
     println(frameRate);
+}
+public void keyReleased () {
+    stt.end();
 }
 
 void oscEvent(OscMessage theOscMessage) {
