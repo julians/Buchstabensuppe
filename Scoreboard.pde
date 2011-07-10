@@ -2,18 +2,28 @@ class Scoreboard
 {
     HashMap<String, NGram> ngrams;
     HashMap<String, Float> ngramColours;
-    float max_value = 0;
-    float w = 500;
-    float h = 200;
+    float max_value ;
+    float w;
+    float h;
+    Tween t;
+    float tweenDuration = 50;
     
-    Scoreboard ()
+    Scoreboard (float w, float h)
     {
+        this.w = w;
+        this.h = h;
+        this.max_value = 0;
+        this.t = new Tween(max_value, max_value, 1f);
+        this.t.play();
+        
         this.ngrams = new HashMap();
         this.ngramColours = new HashMap();
     }
     public void add (NGram ngram)
     {
         this.ngrams.put(ngram.word, ngram);
+        // Um die Farbe zu bestimmen, fürs erste
+        // das Jahr des ersten Auftretens des Wortes
         this.ngramColours.put(ngram.word, map(ngram.getFirstOccurance(), 1500, 2008, 0, 360));
         println("Added: " + ngram.word);
         println("max value: " + ngram.decade_max_value);
@@ -28,15 +38,22 @@ class Scoreboard
     private void calculateMaxValue ()
     {
         Iterator i = this.ngrams.values().iterator();
+        float old_max_value = this.max_value;
         this.max_value = 0;
         
         while (i.hasNext()) {
             NGram ngram = (NGram) i.next();
             if (ngram.decade_max_value > this.max_value) {
                 this.max_value = ngram.decade_max_value;
+                println("New max value: " + this.max_value);
             }
         }
-        println("Max value: " + this.max_value);
+        
+        if (this.max_value != old_max_value) {
+            this.t.pause();
+            this.t = new Tween(this.t.getPosition(), this.max_value, this.tweenDuration);
+            this.t.play();
+        }
     }
     public void draw ()
     {
@@ -60,9 +77,10 @@ class Scoreboard
             stroke((Float) this.ngramColours.get(ngram.word), 100, 50);
             beginShape();
             for (int j = 0; j < ngram.decades.length; j++) {
-                vertex(map(j, 0, ngram.decades.length, 0, this.w), map(ngram.decades[j], 0, this.max_value, this.h, 0));
+                vertex(map(j, 0, ngram.decades.length, 0, this.w), map(ngram.decades[j], 0, this.t.getPosition(), this.h, 0));
             }
             endShape();
         }
+        println(this.t.getPosition());
     }
 }
