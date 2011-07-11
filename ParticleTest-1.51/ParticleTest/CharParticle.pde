@@ -1,63 +1,102 @@
+import saito.objloader.*;
+
 class CharParticle extends Particle
 {
-    boolean fxSpin = false;
+    boolean displace = false;
     boolean flat = false;
+    boolean fxSpin = false;
     boolean used = false;
+    boolean use3DModel = true;
     char character;
     float extrusion = 3;
+    float maxSpin = 1;
+    float rx, ry;
     float spin = random(0.2);
     float spinAccel;
     float spinAccelStart;
-    float maxSpin = 1;
     float width;
+    int mode = 0;
     GLModel vertices;
-    float rx, ry;
     PApplet p;
     RMesh m1;
     RPoint[][] pnts;
     RShape shp;
+    float scale = 0.25;
+    
+    OBJModel model;
+    GLModel glmodel;
+    
+    float[][] originalCoords;
+    
+    final static int GEOMERATIVE = 0;
+    final static int HYBRID = 1;    
+    final static int OBJMODEL = 2;
 
-
-    CharParticle (PApplet p, char c) {
+    CharParticle (PApplet p, char c, int mode) {
       super();
       this.character = c;
       this.p = p;
+      this.mode = mode;
       setup();
     }     
+    CharParticle (PApplet p, char c, GLModel model) {
+      super();
+      this.character = c;
+      this.p = p;
+      this.mode = 2;
+      this.glmodel = model;
+    }
 
     void setup() 
     { 
         shp = font.toShape(this.character);
-        RCommand.setSegmentator(RCommand.UNIFORMSTEP);
+        // RCommand.setSegmentator(RCommand.UNIFORMSTEP);
         // RCommand.setSegmentStep(1);
         // RCommand.setSegmentAngle(HALF_PI);
         pnts = shp.getPointsInPaths();
         m1 = shp.toMesh();
-        
-        int verticeCount = 0;
-        // for (int i = 0; i < m1.countStrips(); i++){
-        //   for(int j=0;j<m1.strips[i].vertices.length;j++){
-        //     verticeCount++;
-        //   }
-        // }
-        
-        for (int i = 0; i < m1.countStrips(); i++) {
-            RPoint[] pts = m1.strips[i].getPoints();
-            for(int j=0;j<pts.length;j++){
-                    verticeCount++;
-            }
-        }
-        
-        // for (int i = 0; i < pnts.length; i++) {
-        //      for (int ii = 0; ii < pnts[i].length; ii++)
-        //      {
-        //          verticeCount++;
-        //      }
-        // }
-        
-        // vertices = new GLModel(p, verticeCount, TRIANGLE_STRIP, GLModel.DYNAMIC);
-        // generateModel();
         calcWidth();
+        
+        switch (mode) {
+            case GEOMERATIVE:
+            
+            break;
+                
+            case HYBRID:
+            
+            int verticeCount = 0;
+            for (int i = 0; i < m1.countStrips(); i++) {
+                RPoint[] pts = m1.strips[i].getPoints();
+                for(int j=0;j<pts.length;j++){
+                        verticeCount++;
+                }
+            }
+            glmodel = new GLModel(p, verticeCount, TRIANGLE_STRIP, GLModel.DYNAMIC);
+            geomerativeToGLModel();
+            break;
+                
+            case OBJMODEL:
+            
+            // model = new OBJModel(p, ("" + character).toUpperCase() + ".obj", "relative", TRIANGLES);
+            // model.enableDebug();
+            // 
+            // glmodel = new GLModel(p, model.getFaceCount() * 3, TRIANGLES, GLModel.DYNAMIC);
+            // originalCoords = new float[model.getFaceCount() * 3][3];
+            // 
+            // glmodel.beginUpdateVertices();   
+            // int i = 0;
+            //   for (int f = 0; f < model.getFaceCount(); f++) {
+            //     PVector[] fverts = model.getFaceVertices(f);
+            //     for (int v = 0; v < fverts.length; v++) {
+            //       originalCoords[i] = new float[]{fverts[v].x, fverts[v].y, fverts[v].z};
+            //       glmodel.updateVertex(i++, fverts[v].x, fverts[v].y, fverts[v].z);
+            //     }
+            //   }
+            // glmodel.endUpdateVertices();
+            // glmodel.initColors();
+            // glmodel.setColors(255);
+            // break;
+        }
         spinAccel = random(0.005);
         spinAccelStart = spinAccel;
         
@@ -74,28 +113,65 @@ class CharParticle extends Particle
         } 
         else { 
             
-            if (fxSpin && spin < 3) {
-                spin *= spinAccel;
+            // stupid
+            if (fxSpin && Math.abs(spin) < maxSpin) {
+                spin += spinAccel;
             } else if (!fxSpin && spin != 0){
-                spin /= spinAccel;
+                spin -= spinAccel;
+            } else {
+
             }
-            
             ry += spin;
-            rotateY(spin);
             
-            for (int i = 0; i < pnts.length; i++) {
-                 beginShape(QUAD_STRIP);
-                 for (int ii = 0; ii < pnts[i].length; ii++)
-                 {
-                     vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
-                     vertex(pnts[i][ii].x, pnts[i][ii].y, extrusion);
-                 }
-                 endShape(CLOSE);
-            
+            switch (mode) {
+                
+                case GEOMERATIVE:
+                
+                if(ry > 0) rotateY(ry);
+                else ry = 0;
+                
+                for (int i = 0; i < pnts.length; i++) {
+                     beginShape(QUAD_STRIP);
+                     for (int ii = 0; ii < pnts[i].length; ii++)
+                     {
+                         vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
+                         vertex(pnts[i][ii].x, pnts[i][ii].y, extrusion);
+                     }
+                     endShape(CLOSE);
+                
+                }
+                m1.draw();
+                translate(0, 0, extrusion);
+                m1.draw();
+                break;
+                
+                case HYBRID: 
+                GLGraphics renderer = (GLGraphics)g;
+                renderer.beginGL();
+                renderer.model(glmodel);
+                renderer.endGL();
+                break;
+                
+                case OBJMODEL:
+                
+                if (displace) {
+                    glmodel.beginUpdateVertices();
+                    for (int i = 0; i < glmodel.getSize(); i++) glmodel.updateVertex(i, originalCoords[i][0] + random(-mouseX, mouseX), originalCoords[i][1] + random(-mouseY, mouseY), originalCoords[i][2]);
+                    glmodel.endUpdateVertices();
+                }
+                
+                renderer = (GLGraphics)g;
+                renderer.beginGL();
+                
+                if(ry > 0) renderer.rotateY(ry);
+                else ry = 0;
+                
+                renderer.scale(scale);
+                renderer.model(glmodel);
+                renderer.endGL();
+                break;
             }
-            m1.draw();
-            translate(0, 0, extrusion);
-            m1.draw();
+
         }
         popMatrix();
     }
@@ -152,17 +228,21 @@ class CharParticle extends Particle
             canvas.vertex(m1.strips[i].vertices[j].x,m1.strips[i].vertices[j].y);
           }
           canvas.endShape(PConstants.CLOSE);
-        }
-        
+        }  
     }
-    void generateModel () {
+    void draw (GLGraphics renderer) {
+        renderer.beginGL();
+        renderer.model(glmodel);
+        renderer.endGL();
+    }
+    void geomerativeToGLModel () {
         
         int v = 0;
-        vertices.beginUpdateVertices();
+        glmodel.beginUpdateVertices();
         for (int i = 0; i < m1.countStrips(); i++) {
             RPoint[] pts = m1.strips[i].getPoints();
             for(int j=0;j<pts.length;j++){
-                    vertices.updateVertex(v++, pts[j].x, pts[j].y, 0);
+                    glmodel.updateVertex(v++, pts[j].x, pts[j].y, 0);
             }
         }
         // for (int i = 0; i < pnts.length; i++) {
@@ -172,9 +252,9 @@ class CharParticle extends Particle
         //          vertices.updateVertex(v++, pnts[i][ii].x, pnts[i][ii].y, 3);
         //      }
         // }
-        vertices.endUpdateVertices(); 
-        vertices.initColors();
-        vertices.setColors(255);
+        glmodel.endUpdateVertices(); 
+        glmodel.initColors();
+        glmodel.setColors(255);
     }
     private void calcWidth () {
         for (int i = 0; i < pnts.length; i++) {

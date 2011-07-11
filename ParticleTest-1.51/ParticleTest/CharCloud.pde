@@ -3,6 +3,11 @@ public class CharCloud extends ParticleSystem
     HashMap<String, Word> words;
     PVector target;
     int letterspacing = 20;
+    HashMap<String, GLModel> modelCache;
+    int mode = CharParticle.OBJMODEL;
+    
+    OBJModel model;
+    GLModel glmodel;
     
     public CharCloud (PApplet p5) {
         this(p5, -1);
@@ -11,13 +16,12 @@ public class CharCloud extends ParticleSystem
     public CharCloud (PApplet p5, int max) {
         super(p5, max);
         words = new HashMap<String, Word>();
+        modelCache = new HashMap<String, GLModel>(26);
         init();
     }
     
     public void addWord (String s) {}
     public void removeWord (String s) {} // auflösen oder so
-    
-    public void formWord () {}
     
     // public ArrayList<String> getKeys () {}
     // public ArrayList<String> getValues () {}
@@ -40,12 +44,13 @@ public class CharCloud extends ParticleSystem
                 } else {
                     c = (((String) pairs.getKey()).toLowerCase()).charAt(0); 
                 }
+                GLModel m = getModelForChar(c);
                 // ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);            
-                CharParticle p = new CharParticle(p5, c);
+                CharParticle p = new CharParticle(p5, c, m);
                 // p.addForceField(attraction);
                 // attraction.influence(emitter.getParticles());
 
-                addParticle(p, random(width), random(height), random(1000, 10000)).randomizeVelocity(1).setLifeSpan(-1);
+                addParticle(p, random(width), random(height), random(-1000, 1000)).randomizeVelocity(1).setLifeSpan(-1);
                 p.addBehavior(new Friction(0.01));
             } 
         }
@@ -99,9 +104,36 @@ public class CharCloud extends ParticleSystem
                 }
             }
         }
-        CharParticle p = new CharParticle(p5, c);
+        GLModel m = getModelForChar(c);
+        CharParticle p = new CharParticle(p5, c, m);
         addParticle(p, random(width), random(height), target.z + random(100)).randomizeVelocity(1).setLifeSpan(-1);
         p.used = true;
         return p;
+    }
+    // returns the cached model for reuse with a new CharParticle
+    GLModel getModelForChar(char c) {
+        if (modelCache.containsKey("" + c)) {
+            return modelCache.get("" + c);
+        } else {
+            model = new OBJModel(p5, ("" + c).toUpperCase() + ".obj", "relative", TRIANGLES);
+            model.enableDebug();
+
+            glmodel = new GLModel(p5, model.getFaceCount() * 3, TRIANGLES, GLModel.DYNAMIC);
+
+            glmodel.beginUpdateVertices();   
+            int index = 0;
+              for (int f = 0; f < model.getFaceCount(); f++) {
+                PVector[] fverts = model.getFaceVertices(f);
+                for (int v = 0; v < fverts.length; v++) {
+                  glmodel.updateVertex(index++, fverts[v].x, fverts[v].y, fverts[v].z);
+                }
+              }
+            glmodel.endUpdateVertices();
+            glmodel.initColors();
+            glmodel.setColors(255);
+            modelCache.put("" + c, glmodel);
+            return glmodel; 
+        }
+
     }
 }

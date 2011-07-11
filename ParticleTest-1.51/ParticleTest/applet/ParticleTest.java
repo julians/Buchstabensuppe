@@ -8,9 +8,13 @@ import damkjer.ocd.*;
 import ddf.minim.*; 
 import ddf.minim.analysis.*; 
 import geomerative.*; 
+import java.nio.ByteBuffer; 
+import java.nio.IntBuffer; 
+import javax.media.opengl.*; 
 import netP5.*; 
 import oscP5.*; 
 import processing.opengl.*; 
+import saito.objloader.*; 
 import java.util.HashMap; 
 import msafluid.*; 
 import processing.opengl.*; 
@@ -54,7 +58,8 @@ public class ParticleTest extends PApplet {
 
 /*
 *   \u00bbBuchstabensuppe\u00ab optimiert f\u00fcr Processing 1.51
-*   2011-07-02
+*   2011-07-02 Beginn
+*   2011-07-10 Umbau
 *   
 */
 
@@ -69,35 +74,45 @@ public class ParticleTest extends PApplet {
 
 
 
-  
+
+
+
 AudioInput microphone;
 AudioPlayer sample;
+ByteBuffer byteBuffer;
 Camera cam;
 CharCloud cloud;
 ControlWindow controlWindow;
 FFT fftLog;
 Fluid fluid;
 ForceField force;
+GL gl;
 GLGraphicsOffScreen canvas;
 GLModel distributionGraph;
+GLSLShader cubeshader;
 GLSLShader phongShader;
 GLSLShader vertexShader;
 GLTexture backgroundTex;
 GLTexture cloudTex;
+GLTexture tex;
+GLTexture[] textures;
+IntBuffer intBuffer;
+int[] envMapTextureID = {0};
 Minim minim;
 NetAddress myRemoteLocation;
 OscP5 oscP5;
 PFrame controlFrame;
+PGraphicsOpenGL pgl;
 PVector light;
 RFont font;
 Slider2D s;
+String[] textureNames = {"+x.jpg", "-x.jpg", "+y.jpg", "-y.jpg", "+z.jpg", "-z.jpg"};
 STT stt;
 Timeline timeline;
 
-
+boolean applyShaders = false;
 boolean dome = false;
 boolean mic = true;
-boolean applyShaders = true;
 boolean showDebug = true;
 boolean showFluid = false;
 boolean showParticles = true;
@@ -105,7 +120,7 @@ boolean showTimeline = false;
 
 float exposure, decay, density, weight;
 float fluidSize = 2;
-float dollyStep = -5;
+float dollyStep = 0;
 int maxParticles = 100;
 
 /////////////////////////////////////////////////
@@ -125,8 +140,8 @@ public void setup()
     oscP5 = new OscP5(this,12000);
     
     // Kamera
-    cam = new Camera(this, width / 2, height / 2, 5000, 1, 10 * 1000);
-    cam.aim(width / 2, height / 2, 0);
+    cam = new Camera(this, width / 2, height / 2, 0, 1, 10 * 1000);
+    cam.aim(width / 2, height / 2, -1.0f);
     
     // Shader
     vertexShader = new GLSLShader(this, "ls.vert", "ls.frag");
@@ -143,19 +158,19 @@ public void setup()
     
     // STT
     stt = new STT(this, false);
-    // stt.enableDebug();
+    stt.enableDebug();
     stt.setLanguage("de");
+    stt.disableAutoRecord();
     
     // Font f\u00fcr geomerative
     RG.init(this);
-    font = new RFont("lucon.ttf", 32, RFont.CENTER);
+    font = new RFont("UbuntuTitling-Bold.ttf", 32, RFont.CENTER);
     
     // Font f\u00fcr Statusanzeige
     controlWindow.textFont(createFont("Courier", 12));
     
-    // Fluid
-    // initMinim();
-    fluid = new Fluid(this);
+    // Minim
+    initMinim();
     
     // Partikelsystem erstellen
     cloud = new CharCloud(this, maxParticles);
@@ -163,15 +178,38 @@ public void setup()
     cloud.addGlobalVelocity(0, 0, 0);
     force = new ForceField(new PVector (width / 2, height / 2, 5000)).setRadius(50).setStrength(100).show();
     cloud.addForceField(force);
-    
-    timeline = new Timeline();
-    
+
     // Shader stuff
     exposure = 1;
     decay = 0.7f;
     density = 0.5f;
     weight = 0.9f;
-
+    
+    // cubemap
+    
+    pgl = (PGraphicsOpenGL) g;
+    gl = pgl.gl;
+    
+    cubeshader = new GLSLShader(this, "fluxus.vert", "fluxus.frag");
+    
+    // init cubemap textures
+    gl.glGenTextures(1, envMapTextureID, 0);
+    gl.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, envMapTextureID[0]);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_R, GL.GL_CLAMP_TO_EDGE);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+    
+    for (int i = 0; i < textureNames.length; i++) {
+        tex = new GLTexture(this, textureNames[i]);
+        byteBuffer = ByteBuffer.allocate(tex.pixels.length * 4);
+        intBuffer = byteBuffer.asIntBuffer();
+    
+        intBuffer.put(tex.pixels);
+    
+        gl.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.GL_RGBA, tex.width, tex.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, byteBuffer);
+    } 
 }
 
 /////////////////////////////////////////////////
@@ -179,19 +217,6 @@ public void setup()
 public void draw() {
     // background(65, 95, 170);   
     background(0);
-
-    // Fluid
-    if (showFluid) {
-        disturb();
-        fluid.draw();
-    }
-    
-    // Lichter
-    ambient(250, 250, 250);
-    pointLight(255, 255, 255, 500, height/2, 400);
-    
-    // Statischer Hintergrund
-    // image(backgroundTex, 0, 0, width, height);
     
     // // OpenGL Motion Blur
     // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
@@ -223,33 +248,22 @@ public void draw() {
             // Postprocessing Filter, der so tut als wenn Licht hinter den Buchstaben w\u00e4re und diese \u00fcberstrahlt
             canvas.beginDraw();
                 // Die alten Pixel durch transparente ersetzen, sodass der Hintergrund sichtbar bleibt
-                phongShader.start();
-                canvas.clear(0);
-                canvas.background(0);
-                // Lichter
-                ambient(0, 0, 250);
-                pointLight(175, 189, 255, width / 2, height/2, 9000);
-                // Kamera
-                cam.dolly(dollyStep);
-                cam.feed();
-                // Wolken
-                // canvas.tint(255, 192);
-                // for (int i = 0; i < 10; i++) {
-                //     canvas.pushMatrix();
-                //         canvas.translate(0, 0, i * 1000);
-                //         canvas.image(cloudTex, 0, 0, cloudTex.width * i, cloudTex.height * i);
-                //     canvas.popMatrix();
-                // }
+                cubeshader.start();
+                    canvas.clear(0);
+                    canvas.background(0);
                     
-                // Partikelsystem zeichnen
-                cloud.updateAndDraw(canvas);
-                if (showTimeline) {
-                    canvas.pushMatrix();
-                        canvas.translate(mouseX, mouseY, 5000);
-                        timeline.draw(canvas);
-                    canvas.popMatrix();
-                }
-                phongShader.stop();
+                    // Lichter
+                    ambient(0, 0, 250);
+                    directionalLight(175, 189, 255, 0.5f, 0.5f, 1);
+                    pointLight(255, 255, 255, cam.position()[0], cam.position()[1], cam.position()[2]);
+                    // Kamera
+                    cam.dolly(dollyStep);
+                    cam.feed();
+                        
+                    // Partikelsystem zeichnen
+                    cloud.updateAndDraw(canvas);
+
+                cubeshader.stop();
             canvas.endDraw();
 
             vertexShader.start();
@@ -264,6 +278,11 @@ public void draw() {
         } else {
             // Partikelsystem zeichnen
             // Kamera
+            // Lichter
+            ambient(0, 0, 250);
+            directionalLight(175, 189, 255, 0.5f, 0.5f, 1);
+            pointLight(255, 255, 255, cam.position()[0], cam.position()[1], cam.position()[2]);
+            
             cam.dolly(dollyStep);
             cam.feed();
             cloud.updateAndDraw();
@@ -271,7 +290,7 @@ public void draw() {
     }  
         
     // Statusanzeigen mit FPS, Anzahl der Partikel
-    if (showDebug) debug();
+    if (showDebug) debug(); 
 }
 
 /////////////////////////////////////////////////
@@ -306,7 +325,7 @@ public void drawParticle (Particle p) {
         fill(255 - p.progress * 255);
         noStroke();
         if (p instanceof CharParticle) {
-            fill(255, 100, 0);
+            fill(255);
             // Drehen
             float angle = atan2(p.y - height / 2, p.x - width / 2);
             pushMatrix();
@@ -323,43 +342,29 @@ public void drawParticle (Particle p) {
     }
 }
 
-public void initDistributionGraph() {
-    distributionGraph = new GLModel(this, Distribution.getCount(), LINE_STRIP, GLModel.STATIC);
-    distributionGraph.beginUpdateVertices();
-    
-    int index = 0;
-    HashMap<String, Float> d = Distribution.getDistribution();
-    Iterator it = d.entrySet().iterator();
-    while (it.hasNext()) 
-    {
-        Map.Entry pairs = (Map.Entry) it.next();
-        char c = ((String) pairs.getKey()).charAt(0);
-        float value = (Float) pairs.getValue();
-        float size = 4;
-        float x = (width / 2 + sin(TWO_PI / Distribution.getCount() * index) * (2 + width / value));
-        float y = (height / 2 + cos(TWO_PI / Distribution.getCount() * index) * (2 + height / value));
-        distributionGraph.updateVertex(index++, x, y, value);
-    }
-    distributionGraph.endUpdateVertices();
-    distributionGraph.initColors();
-    distributionGraph.setColors(255);
+public void debug () {
+    stroke(255);
+    fill(255);
+    text("particles: " + cloud.getParticleCount(), 10, 10); 
+    text("framerate: " + (int) frameRate, 10, 30); 
 }
-public void transcribe (String word, float confidence, int status) {
-    switch (status) {
-        case STT.SUCCESS:
-            cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2]));       
-            break;
-        case STT.RECORDING:
-            cloud.reactOnRecord();
-            break;
-        case STT.ERROR:
-            cloud.reactOnError();
-            break;
-    }
+
+// OpenGL Alternative zu backround(c, c, c, alpha);
+public void fadeToColor(GL gl, float r, float g, float b, float speed) 
+{
+    gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+    gl.glColor4f(r, g, b, speed);
+    gl.glBegin(GL.GL_QUADS);
+    gl.glVertex2f(0, 0);
+    gl.glVertex2f(width, 0);
+    gl.glVertex2f(width, height);
+    gl.glVertex2f(0, height);
+    gl.glEnd();
 }
+
 public void initMinim () {
     // Minim entweder mit Mikrofon oder MP3 benutzen
-	minim = new Minim(this);
+	minim = stt.getMinimInstance();
 	if (mic) {
 	    microphone = minim.getLineIn(Minim.STEREO, 2048);
         fftLog = new FFT(microphone.bufferSize(), microphone.sampleRate());
@@ -372,33 +377,31 @@ public void initMinim () {
 	}
 }
 
-public void disturb() {
-    // Aktuelles Spektrum holen
-    int specSize = fftLog.specSize();
-    if (mic) {
-        fftLog.forward(microphone.mix);
-    } else {
-        fftLog.forward(sample.mix);
-    }
-    // Am Rand der Kuppel Nebel aussto\u00dfen. Pro Frequenz gibt es einen Punkt auf dem Kreis aus dem der Lautst\u00e4rke entsprechend was rauskommt.
-    for (int i = 0; i < fftLog.specSize(); i++) {
-	    if(fftLog.getBand(i)>0.1f) {
-        	float x = (fluid.center.x + sin(TWO_PI / specSize * i) * (width / fluidSize)) * fluid.invWidth;
-            float y = (fluid.center.y + cos(TWO_PI / specSize * i) * (height / fluidSize) ) * fluid.invHeight;
-	        fluid.addForce(x, y, -sin(TWO_PI / specSize * i) / 2000, cos(TWO_PI / specSize * i) * -fftLog.getBand(i)/2000);
-	        fluid.addForce(1-x, 1-y, sin(TWO_PI / specSize * i) / 2000, -cos(TWO_PI / specSize * i) * -fftLog.getBand(i)/2000);
-	    }
-    }
-}
-
 public void keyPressed () {
-    if (key == 'f') showFluid = !showFluid;
     if (key == 'p') showParticles = !showParticles;
     if (key == 'e') cloud.formWord("Essen", new PVector(mouseX, mouseY, cam.position()[2]));
     if (key == 's') applyShaders = !applyShaders;
-    if (key == 't') showTimeline = !showTimeline;
-    println(cam.position()[2]);
+    if (key == ' ') stt.begin();
     println(frameRate);
+}
+
+public void keyReleased () {
+    stt.end();
+}
+
+public void transcribe (String word, float confidence, int status) {
+    switch (status) {
+        case STT.SUCCESS:
+            cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2] + 100 * dollyStep));  
+            // cam.aim(width / 2, height / 2, cam.position()[2] + 100 * dollyStep);     
+            break;
+        case STT.RECORDING:
+            cloud.reactOnRecord();
+            break;
+        case STT.ERROR:
+            cloud.reactOnError();
+            break;
+    }
 }
 
 public void oscEvent(OscMessage theOscMessage) {
@@ -451,13 +454,6 @@ public void oscEvent(OscMessage theOscMessage) {
     }
 }
 
-public void debug () {
-    stroke(255);
-    fill(255);
-    text("particles: " + cloud.getParticleCount(), 10, 10); 
-    text("framerate: " + (int) frameRate, 10, 30); 
-}
-
 public void stop() 
 {
   if (mic) {
@@ -468,19 +464,6 @@ public void stop()
   }
   minim.stop();
   super.stop();
-}
-
-// OpenGL Alternative zu backround(c, c, c, alpha);
-public void fadeToColor(GL gl, float r, float g, float b, float speed) 
-{
-    gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-    gl.glColor4f(r, g, b, speed);
-    gl.glBegin(GL.GL_QUADS);
-    gl.glVertex2f(0, 0);
-    gl.glVertex2f(width, 0);
-    gl.glVertex2f(width, height);
-    gl.glVertex2f(0, height);
-    gl.glEnd();
 }
 class Behavior 
 {   
@@ -578,11 +561,11 @@ public class CharCloud extends ParticleSystem
                     c = (((String) pairs.getKey()).toLowerCase()).charAt(0); 
                 }
                 // ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);            
-                CharParticle p = new CharParticle(p5, c);
+                CharParticle p = new CharParticle(p5, c, CharParticle.OBJMODEL);
                 // p.addForceField(attraction);
                 // attraction.influence(emitter.getParticles());
 
-                addParticle(p, random(width), random(height), random(1000, 10000)).randomizeVelocity(1).setLifeSpan(-1);
+                addParticle(p, random(width), random(height), random(-1000, 1000)).randomizeVelocity(1).setLifeSpan(-1);
                 p.addBehavior(new Friction(0.01f));
             } 
         }
@@ -636,72 +619,102 @@ public class CharCloud extends ParticleSystem
                 }
             }
         }
-        CharParticle p = new CharParticle(p5, c);
+        CharParticle p = new CharParticle(p5, c, CharParticle.OBJMODEL);
         addParticle(p, random(width), random(height), target.z + random(100)).randomizeVelocity(1).setLifeSpan(-1);
         p.used = true;
         return p;
     }
 }
+
+
 class CharParticle extends Particle
 {
-    boolean fxSpin = false;
+    boolean displace = true;
     boolean flat = false;
+    boolean fxSpin = false;
     boolean used = false;
+    boolean use3DModel = true;
     char character;
     float extrusion = 3;
+    float maxSpin = 1;
+    float rx, ry;
     float spin = random(0.2f);
     float spinAccel;
     float spinAccelStart;
-    float maxSpin = 1;
     float width;
+    int mode = 0;
     GLModel vertices;
-    float rx, ry;
     PApplet p;
     RMesh m1;
     RPoint[][] pnts;
     RShape shp;
+    
+    OBJModel model;
+    GLModel glmodel;
+    
+    float[][] originalCoords;
+    
+    final static int GEOMERATIVE = 0;
+    final static int HYBRID = 1;    
+    final static int OBJMODEL = 2;
 
-
-    CharParticle (PApplet p, char c) {
+    CharParticle (PApplet p, char c, int mode) {
       super();
       this.character = c;
       this.p = p;
+      this.mode = mode;
       setup();
     }     
 
     public void setup() 
     { 
-        shp = font.toShape(this.character);
-        RCommand.setSegmentator(RCommand.UNIFORMSTEP);
-        // RCommand.setSegmentStep(1);
-        // RCommand.setSegmentAngle(HALF_PI);
-        pnts = shp.getPointsInPaths();
-        m1 = shp.toMesh();
-        
-        int verticeCount = 0;
-        // for (int i = 0; i < m1.countStrips(); i++){
-        //   for(int j=0;j<m1.strips[i].vertices.length;j++){
-        //     verticeCount++;
-        //   }
-        // }
-        
-        for (int i = 0; i < m1.countStrips(); i++) {
-            RPoint[] pts = m1.strips[i].getPoints();
-            for(int j=0;j<pts.length;j++){
-                    verticeCount++;
+        switch (mode) {
+            case GEOMERATIVE:
+            
+            shp = font.toShape(this.character);
+            RCommand.setSegmentator(RCommand.UNIFORMSTEP);
+            // RCommand.setSegmentStep(1);
+            // RCommand.setSegmentAngle(HALF_PI);
+            pnts = shp.getPointsInPaths();
+            m1 = shp.toMesh();
+            calcWidth();
+            break;
+                
+            case HYBRID:
+            
+            int verticeCount = 0;
+            for (int i = 0; i < m1.countStrips(); i++) {
+                RPoint[] pts = m1.strips[i].getPoints();
+                for(int j=0;j<pts.length;j++){
+                        verticeCount++;
+                }
             }
+            glmodel = new GLModel(p, verticeCount, TRIANGLE_STRIP, GLModel.DYNAMIC);
+            geomerativeToGLModel();
+            break;
+                
+            case OBJMODEL:
+            
+            model = new OBJModel(p, ("" + character).toUpperCase() + ".obj", "relative", TRIANGLES);
+            model.enableDebug();
+            
+            glmodel = new GLModel(p, model.getFaceCount() * 3, TRIANGLE_STRIP, GLModel.DYNAMIC);
+            originalCoords = new float[model.getFaceCount() * 3][3];
+            
+            glmodel.beginUpdateVertices();   
+            int i = 0;
+              for (int f = 0; f < model.getFaceCount(); f++) {
+                PVector[] fverts = model.getFaceVertices(f);
+                for (int v = 0; v < fverts.length; v++) {
+                  originalCoords[i] = new float[]{fverts[v].x, fverts[v].y, fverts[v].z};
+                  glmodel.updateVertex(i++, fverts[v].x, fverts[v].y, fverts[v].z);
+                }
+              }
+            glmodel.endUpdateVertices();
+            glmodel.initColors();
+            glmodel.setColors(255);
+                break;
         }
-        
-        // for (int i = 0; i < pnts.length; i++) {
-        //      for (int ii = 0; ii < pnts[i].length; ii++)
-        //      {
-        //          verticeCount++;
-        //      }
-        // }
-        
-        // vertices = new GLModel(p, verticeCount, TRIANGLE_STRIP, GLModel.DYNAMIC);
-        // generateModel();
-        calcWidth();
         spinAccel = random(0.005f);
         spinAccelStart = spinAccel;
         
@@ -718,28 +731,55 @@ class CharParticle extends Particle
         } 
         else { 
             
-            if (fxSpin && spin < 3) {
-                spin *= spinAccel;
+            // stupid
+            if (fxSpin && Math.abs(spin) < maxSpin) {
+                spin += spinAccel;
             } else if (!fxSpin && spin != 0){
-                spin /= spinAccel;
+                spin -= spinAccel;
+            } else {
+
             }
-            
             ry += spin;
-            rotateY(spin);
+            if(ry > 0) canvas.rotateY(ry);
+            else ry = 0;
             
-            for (int i = 0; i < pnts.length; i++) {
-                 beginShape(QUAD_STRIP);
-                 for (int ii = 0; ii < pnts[i].length; ii++)
-                 {
-                     vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
-                     vertex(pnts[i][ii].x, pnts[i][ii].y, extrusion);
-                 }
-                 endShape(CLOSE);
-            
+            switch (mode) {
+                
+                case GEOMERATIVE:
+                
+                for (int i = 0; i < pnts.length; i++) {
+                     beginShape(QUAD_STRIP);
+                     for (int ii = 0; ii < pnts[i].length; ii++)
+                     {
+                         vertex(pnts[i][ii].x, pnts[i][ii].y, 0);
+                         vertex(pnts[i][ii].x, pnts[i][ii].y, extrusion);
+                     }
+                     endShape(CLOSE);
+                
+                }
+                m1.draw();
+                translate(0, 0, extrusion);
+                m1.draw();
+                break;
+                
+                case HYBRID: 
+                break;
+                
+                case OBJMODEL:
+                
+                if (displace) {
+                    glmodel.beginUpdateVertices();
+                    for (int i = 0; i < glmodel.getSize(); i++) glmodel.updateVertex(i, originalCoords[i][0] + random(-mouseX, mouseX), originalCoords[i][1] + random(-mouseY, mouseY), originalCoords[i][2]);
+                    glmodel.endUpdateVertices();
+                }
+                
+                GLGraphics renderer = (GLGraphics)g;
+                renderer.beginGL();
+                renderer.model(glmodel);
+                renderer.endGL();
+                break;
             }
-            m1.draw();
-            translate(0, 0, extrusion);
-            m1.draw();
+
         }
         popMatrix();
     }
@@ -796,17 +836,21 @@ class CharParticle extends Particle
             canvas.vertex(m1.strips[i].vertices[j].x,m1.strips[i].vertices[j].y);
           }
           canvas.endShape(PConstants.CLOSE);
-        }
-        
+        }  
     }
-    public void generateModel () {
+    public void draw (GLGraphics renderer) {
+        renderer.beginGL();
+        renderer.model(glmodel);
+        renderer.endGL();
+    }
+    public void geomerativeToGLModel () {
         
         int v = 0;
-        vertices.beginUpdateVertices();
+        glmodel.beginUpdateVertices();
         for (int i = 0; i < m1.countStrips(); i++) {
             RPoint[] pts = m1.strips[i].getPoints();
             for(int j=0;j<pts.length;j++){
-                    vertices.updateVertex(v++, pts[j].x, pts[j].y, 0);
+                    glmodel.updateVertex(v++, pts[j].x, pts[j].y, 0);
             }
         }
         // for (int i = 0; i < pnts.length; i++) {
@@ -816,9 +860,9 @@ class CharParticle extends Particle
         //          vertices.updateVertex(v++, pnts[i][ii].x, pnts[i][ii].y, 3);
         //      }
         // }
-        vertices.endUpdateVertices(); 
-        vertices.initColors();
-        vertices.setColors(255);
+        glmodel.endUpdateVertices(); 
+        glmodel.initColors();
+        glmodel.setColors(255);
     }
     private void calcWidth () {
         for (int i = 0; i < pnts.length; i++) {

@@ -1,6 +1,7 @@
 /*
 *   »Buchstabensuppe« optimiert für Processing 1.51
-*   2011-07-02
+*   2011-07-02 Beginn
+*   2011-07-10 Umbau
 *   
 */
 
@@ -11,39 +12,49 @@ import damkjer.ocd.*;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import geomerative.*;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import javax.media.opengl.*;
 import netP5.*;
 import oscP5.*;
 import processing.opengl.*;
 
-  
 AudioInput microphone;
 AudioPlayer sample;
+ByteBuffer byteBuffer;
 Camera cam;
 CharCloud cloud;
 ControlWindow controlWindow;
 FFT fftLog;
 Fluid fluid;
 ForceField force;
+GL gl;
 GLGraphicsOffScreen canvas;
 GLModel distributionGraph;
+GLSLShader cubeshader;
 GLSLShader phongShader;
 GLSLShader vertexShader;
 GLTexture backgroundTex;
 GLTexture cloudTex;
+GLTexture tex;
+GLTexture[] textures;
+IntBuffer intBuffer;
+int[] envMapTextureID = {0};
 Minim minim;
 NetAddress myRemoteLocation;
 OscP5 oscP5;
 PFrame controlFrame;
+PGraphicsOpenGL pgl;
 PVector light;
 RFont font;
 Slider2D s;
+String[] textureNames = {"+x.jpg", "-x.jpg", "+y.jpg", "-y.jpg", "+z.jpg", "-z.jpg"};
 STT stt;
 Timeline timeline;
 
-
+boolean applyShaders = false;
 boolean dome = false;
 boolean mic = true;
-boolean applyShaders = true;
 boolean showDebug = true;
 boolean showFluid = false;
 boolean showParticles = true;
@@ -51,7 +62,7 @@ boolean showTimeline = false;
 
 float exposure, decay, density, weight;
 float fluidSize = 2;
-float dollyStep = -5;
+float dollyStep = 0;
 int maxParticles = 100;
 
 /////////////////////////////////////////////////
@@ -71,8 +82,8 @@ public void setup()
     oscP5 = new OscP5(this,12000);
     
     // Kamera
-    cam = new Camera(this, width / 2, height / 2, 5000, 1, 10 * 1000);
-    cam.aim(width / 2, height / 2, 0);
+    cam = new Camera(this, width / 2, height / 2, 0, 1, 10 * 1000);
+    cam.aim(width / 2, height / 2, -1.0);
     
     // Shader
     vertexShader = new GLSLShader(this, "ls.vert", "ls.frag");
@@ -89,19 +100,19 @@ public void setup()
     
     // STT
     stt = new STT(this, false);
-    // stt.enableDebug();
+    stt.enableDebug();
     stt.setLanguage("de");
+    stt.disableAutoRecord();
     
     // Font für geomerative
     RG.init(this);
-    font = new RFont("lucon.ttf", 32, RFont.CENTER);
+    font = new RFont("UbuntuTitling-Bold.ttf", 32, RFont.CENTER);
     
     // Font für Statusanzeige
     controlWindow.textFont(createFont("Courier", 12));
     
-    // Fluid
-    // initMinim();
-    fluid = new Fluid(this);
+    // Minim
+    initMinim();
     
     // Partikelsystem erstellen
     cloud = new CharCloud(this, maxParticles);
@@ -109,15 +120,38 @@ public void setup()
     cloud.addGlobalVelocity(0, 0, 0);
     force = new ForceField(new PVector (width / 2, height / 2, 5000)).setRadius(50).setStrength(100).show();
     cloud.addForceField(force);
-    
-    timeline = new Timeline();
-    
+
     // Shader stuff
     exposure = 1;
     decay = 0.7;
     density = 0.5;
     weight = 0.9;
-
+    
+    // cubemap
+    
+    pgl = (PGraphicsOpenGL) g;
+    gl = pgl.gl;
+    
+    cubeshader = new GLSLShader(this, "fluxus.vert", "fluxus.frag");
+    
+    // init cubemap textures
+    gl.glGenTextures(1, envMapTextureID, 0);
+    gl.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, envMapTextureID[0]);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_R, GL.GL_CLAMP_TO_EDGE);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+    gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+    
+    for (int i = 0; i < textureNames.length; i++) {
+        tex = new GLTexture(this, textureNames[i]);
+        byteBuffer = ByteBuffer.allocate(tex.pixels.length * 4);
+        intBuffer = byteBuffer.asIntBuffer();
+    
+        intBuffer.put(tex.pixels);
+    
+        gl.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.GL_RGBA, tex.width, tex.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, byteBuffer);
+    } 
 }
 
 /////////////////////////////////////////////////
@@ -125,19 +159,6 @@ public void setup()
 public void draw() {
     // background(65, 95, 170);   
     background(0);
-
-    // Fluid
-    if (showFluid) {
-        disturb();
-        fluid.draw();
-    }
-    
-    // Lichter
-    ambient(250, 250, 250);
-    pointLight(255, 255, 255, 500, height/2, 400);
-    
-    // Statischer Hintergrund
-    // image(backgroundTex, 0, 0, width, height);
     
     // // OpenGL Motion Blur
     // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
@@ -169,33 +190,22 @@ public void draw() {
             // Postprocessing Filter, der so tut als wenn Licht hinter den Buchstaben wäre und diese überstrahlt
             canvas.beginDraw();
                 // Die alten Pixel durch transparente ersetzen, sodass der Hintergrund sichtbar bleibt
-                phongShader.start();
-                canvas.clear(0);
-                canvas.background(0);
-                // Lichter
-                ambient(0, 0, 250);
-                pointLight(175, 189, 255, width / 2, height/2, 9000);
-                // Kamera
-                cam.dolly(dollyStep);
-                cam.feed();
-                // Wolken
-                // canvas.tint(255, 192);
-                // for (int i = 0; i < 10; i++) {
-                //     canvas.pushMatrix();
-                //         canvas.translate(0, 0, i * 1000);
-                //         canvas.image(cloudTex, 0, 0, cloudTex.width * i, cloudTex.height * i);
-                //     canvas.popMatrix();
-                // }
+                cubeshader.start();
+                    canvas.clear(0);
+                    canvas.background(0);
                     
-                // Partikelsystem zeichnen
-                cloud.updateAndDraw(canvas);
-                if (showTimeline) {
-                    canvas.pushMatrix();
-                        canvas.translate(mouseX, mouseY, 5000);
-                        timeline.draw(canvas);
-                    canvas.popMatrix();
-                }
-                phongShader.stop();
+                    // Lichter
+                    ambient(0, 0, 250);
+                    directionalLight(175, 189, 255, 0.5, 0.5, 1);
+                    pointLight(255, 255, 255, cam.position()[0], cam.position()[1], cam.position()[2]);
+                    // Kamera
+                    cam.dolly(dollyStep);
+                    cam.feed();
+                        
+                    // Partikelsystem zeichnen
+                    cloud.updateAndDraw(canvas);
+
+                cubeshader.stop();
             canvas.endDraw();
 
             vertexShader.start();
@@ -210,6 +220,11 @@ public void draw() {
         } else {
             // Partikelsystem zeichnen
             // Kamera
+            // Lichter
+            ambient(0, 0, 250);
+            directionalLight(175, 189, 255, 0.5, 0.5, 1);
+            pointLight(255, 255, 255, cam.position()[0], cam.position()[1], cam.position()[2]);
+            
             cam.dolly(dollyStep);
             cam.feed();
             cloud.updateAndDraw();
@@ -217,7 +232,7 @@ public void draw() {
     }  
         
     // Statusanzeigen mit FPS, Anzahl der Partikel
-    if (showDebug) debug();
+    if (showDebug) debug(); 
 }
 
 /////////////////////////////////////////////////
@@ -252,7 +267,7 @@ public void drawParticle (Particle p) {
         fill(255 - p.progress * 255);
         noStroke();
         if (p instanceof CharParticle) {
-            fill(255, 100, 0);
+            fill(255);
             // Drehen
             float angle = atan2(p.y - height / 2, p.x - width / 2);
             pushMatrix();
@@ -269,43 +284,29 @@ public void drawParticle (Particle p) {
     }
 }
 
-void initDistributionGraph() {
-    distributionGraph = new GLModel(this, Distribution.getCount(), LINE_STRIP, GLModel.STATIC);
-    distributionGraph.beginUpdateVertices();
-    
-    int index = 0;
-    HashMap<String, Float> d = Distribution.getDistribution();
-    Iterator it = d.entrySet().iterator();
-    while (it.hasNext()) 
-    {
-        Map.Entry pairs = (Map.Entry) it.next();
-        char c = ((String) pairs.getKey()).charAt(0);
-        float value = (Float) pairs.getValue();
-        float size = 4;
-        float x = (width / 2 + sin(TWO_PI / Distribution.getCount() * index) * (2 + width / value));
-        float y = (height / 2 + cos(TWO_PI / Distribution.getCount() * index) * (2 + height / value));
-        distributionGraph.updateVertex(index++, x, y, value);
-    }
-    distributionGraph.endUpdateVertices();
-    distributionGraph.initColors();
-    distributionGraph.setColors(255);
+public void debug () {
+    stroke(255);
+    fill(255);
+    text("particles: " + cloud.getParticleCount(), 10, 10); 
+    text("framerate: " + (int) frameRate, 10, 30); 
 }
-public void transcribe (String word, float confidence, int status) {
-    switch (status) {
-        case STT.SUCCESS:
-            cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2]));       
-            break;
-        case STT.RECORDING:
-            cloud.reactOnRecord();
-            break;
-        case STT.ERROR:
-            cloud.reactOnError();
-            break;
-    }
+
+// OpenGL Alternative zu backround(c, c, c, alpha);
+public void fadeToColor(GL gl, float r, float g, float b, float speed) 
+{
+    gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+    gl.glColor4f(r, g, b, speed);
+    gl.glBegin(GL.GL_QUADS);
+    gl.glVertex2f(0, 0);
+    gl.glVertex2f(width, 0);
+    gl.glVertex2f(width, height);
+    gl.glVertex2f(0, height);
+    gl.glEnd();
 }
+
 public void initMinim () {
     // Minim entweder mit Mikrofon oder MP3 benutzen
-	minim = new Minim(this);
+	minim = stt.getMinimInstance();
 	if (mic) {
 	    microphone = minim.getLineIn(Minim.STEREO, 2048);
         fftLog = new FFT(microphone.bufferSize(), microphone.sampleRate());
@@ -318,33 +319,31 @@ public void initMinim () {
 	}
 }
 
-public void disturb() {
-    // Aktuelles Spektrum holen
-    int specSize = fftLog.specSize();
-    if (mic) {
-        fftLog.forward(microphone.mix);
-    } else {
-        fftLog.forward(sample.mix);
-    }
-    // Am Rand der Kuppel Nebel ausstoßen. Pro Frequenz gibt es einen Punkt auf dem Kreis aus dem der Lautstärke entsprechend was rauskommt.
-    for (int i = 0; i < fftLog.specSize(); i++) {
-	    if(fftLog.getBand(i)>0.1) {
-        	float x = (fluid.center.x + sin(TWO_PI / specSize * i) * (width / fluidSize)) * fluid.invWidth;
-            float y = (fluid.center.y + cos(TWO_PI / specSize * i) * (height / fluidSize) ) * fluid.invHeight;
-	        fluid.addForce(x, y, -sin(TWO_PI / specSize * i) / 2000, cos(TWO_PI / specSize * i) * -fftLog.getBand(i)/2000);
-	        fluid.addForce(1-x, 1-y, sin(TWO_PI / specSize * i) / 2000, -cos(TWO_PI / specSize * i) * -fftLog.getBand(i)/2000);
-	    }
-    }
-}
-
 public void keyPressed () {
-    if (key == 'f') showFluid = !showFluid;
     if (key == 'p') showParticles = !showParticles;
     if (key == 'e') cloud.formWord("Essen", new PVector(mouseX, mouseY, cam.position()[2]));
     if (key == 's') applyShaders = !applyShaders;
-    if (key == 't') showTimeline = !showTimeline;
-    println(cam.position()[2]);
+    if (key == ' ') stt.begin();
     println(frameRate);
+}
+
+public void keyReleased () {
+    stt.end();
+}
+
+public void transcribe (String word, float confidence, int status) {
+    switch (status) {
+        case STT.SUCCESS:
+            cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2] + 100 * dollyStep));  
+            // cam.aim(width / 2, height / 2, cam.position()[2] + 100 * dollyStep);     
+            break;
+        case STT.RECORDING:
+            cloud.reactOnRecord();
+            break;
+        case STT.ERROR:
+            cloud.reactOnError();
+            break;
+    }
 }
 
 void oscEvent(OscMessage theOscMessage) {
@@ -397,13 +396,6 @@ void oscEvent(OscMessage theOscMessage) {
     }
 }
 
-public void debug () {
-    stroke(255);
-    fill(255);
-    text("particles: " + cloud.getParticleCount(), 10, 10); 
-    text("framerate: " + (int) frameRate, 10, 30); 
-}
-
 public void stop() 
 {
   if (mic) {
@@ -414,17 +406,4 @@ public void stop()
   }
   minim.stop();
   super.stop();
-}
-
-// OpenGL Alternative zu backround(c, c, c, alpha);
-public void fadeToColor(GL gl, float r, float g, float b, float speed) 
-{
-    gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-    gl.glColor4f(r, g, b, speed);
-    gl.glBegin(GL.GL_QUADS);
-    gl.glVertex2f(0, 0);
-    gl.glVertex2f(width, 0);
-    gl.glVertex2f(width, height);
-    gl.glVertex2f(0, height);
-    gl.glEnd();
 }

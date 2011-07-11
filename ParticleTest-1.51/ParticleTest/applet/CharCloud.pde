@@ -41,11 +41,11 @@ public class CharCloud extends ParticleSystem
                     c = (((String) pairs.getKey()).toLowerCase()).charAt(0); 
                 }
                 // ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);            
-                CharParticle p = new CharParticle(p5, c);
+                CharParticle p = new CharParticle(p5, c, CharParticle.OBJMODEL);
                 // p.addForceField(attraction);
                 // attraction.influence(emitter.getParticles());
 
-                addParticle(p, random(width), random(height), random(1000, 10000)).randomizeVelocity(1).setLifeSpan(-1);
+                addParticle(p, random(width), random(height), random(-1000, 1000)).randomizeVelocity(1).setLifeSpan(-1);
                 p.addBehavior(new Friction(0.01));
             } 
         }
@@ -99,7 +99,7 @@ public class CharCloud extends ParticleSystem
                 }
             }
         }
-        CharParticle p = new CharParticle(p5, c);
+        CharParticle p = new CharParticle(p5, c, CharParticle.OBJMODEL);
         addParticle(p, random(width), random(height), target.z + random(100)).randomizeVelocity(1).setLifeSpan(-1);
         p.used = true;
         return p;
