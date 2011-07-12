@@ -6,7 +6,6 @@ class Scoreboard
     public float h;
     private float currentScale;
     private float tweenDuration = 50f;
-    private String tweenEasing = Tween.QUAD_EASE_BOTH;
     
     Scoreboard (float w, float h)
     {
