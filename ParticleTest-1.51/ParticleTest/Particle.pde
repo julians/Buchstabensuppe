@@ -56,7 +56,7 @@ class Particle
         
         if (useTarget) {
             PVector dir = PVector.sub(target, position);
-            dir.mult(0.1);
+            dir.mult(0.05);
             velocity.set(dir);
         }
         // update position

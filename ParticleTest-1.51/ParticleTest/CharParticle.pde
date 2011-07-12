@@ -5,13 +5,13 @@ class CharParticle extends Particle
     boolean displace = false;
     boolean flat = false;
     boolean fxSpin = false;
-    boolean used = false;
+    public boolean used = false;
     boolean use3DModel = true;
     char character;
     float extrusion = 3;
-    float maxSpin = 1;
-    float rx, ry;
-    float spin = random(0.2);
+    float maxSpin = 0.2;
+    float rx, ry = 0;
+    float spin = random(0.025);
     float spinAccel;
     float spinAccelStart;
     float width;
@@ -22,6 +22,8 @@ class CharParticle extends Particle
     RPoint[][] pnts;
     RShape shp;
     float scale = 0.25;
+    
+    Ani slowSpin;
     
     OBJModel model;
     GLModel glmodel;
@@ -44,7 +46,8 @@ class CharParticle extends Particle
       this.character = c;
       this.p = p;
       this.mode = 2;
-      this.glmodel = model;
+      this.glmodel = model; 
+      this.setup();
     }
 
     void setup() 
@@ -65,9 +68,11 @@ class CharParticle extends Particle
             case HYBRID:
             
             int verticeCount = 0;
+            float maxX = 0; 
             for (int i = 0; i < m1.countStrips(); i++) {
                 RPoint[] pts = m1.strips[i].getPoints();
                 for(int j=0;j<pts.length;j++){
+                        if (pts[j].x > maxX) maxX = pts[j].x;
                         verticeCount++;
                 }
             }
@@ -96,6 +101,19 @@ class CharParticle extends Particle
             // glmodel.initColors();
             // glmodel.setColors(255);
             // break;
+            
+            this.width = this.glmodel.width * this.scale;
+            // this.glmodel.centerVertices();
+            
+            slowSpin = new Ani(this, random(5, 10), "ry", ry + 0.5);
+
+            // FORWARD, BACKWARD, YOYO
+            slowSpin.setPlayMode(Ani.YOYO);
+            slowSpin.repeat();
+            slowSpin.setEasing(Ani.CUBIC_IN_OUT);
+            slowSpin.start();
+            break;
+            
         }
         spinAccel = random(0.005);
         spinAccelStart = spinAccel;
@@ -112,17 +130,6 @@ class CharParticle extends Particle
           text(character, 0, 0);
         } 
         else { 
-            
-            // stupid
-            if (fxSpin && Math.abs(spin) < maxSpin) {
-                spin += spinAccel;
-            } else if (!fxSpin && spin != 0){
-                spin -= spinAccel;
-            } else {
-
-            }
-            ry += spin;
-            
             switch (mode) {
                 
                 case GEOMERATIVE:
@@ -159,14 +166,13 @@ class CharParticle extends Particle
                     for (int i = 0; i < glmodel.getSize(); i++) glmodel.updateVertex(i, originalCoords[i][0] + random(-mouseX, mouseX), originalCoords[i][1] + random(-mouseY, mouseY), originalCoords[i][2]);
                     glmodel.endUpdateVertices();
                 }
-                
                 renderer = (GLGraphics)g;
                 renderer.beginGL();
-                
-                if(ry > 0) renderer.rotateY(ry);
-                else ry = 0;
-                
+                renderer.translate(width / 2, 0, 0);
+                renderer.fill(0);
+                renderer.rotateY(ry);             
                 renderer.scale(scale);
+                renderer.translate(-width / 2, 0, 0);
                 renderer.model(glmodel);
                 renderer.endGL();
                 break;
@@ -177,8 +183,7 @@ class CharParticle extends Particle
     }
     void draw (GLGraphicsOffScreen canvas) {
         int v;
-        canvas.pushMatrix();   
-        
+        canvas.pushMatrix(); 
         // flat = (z < 0) ? true : false;
         
         if (flat) {
@@ -242,7 +247,7 @@ class CharParticle extends Particle
         for (int i = 0; i < m1.countStrips(); i++) {
             RPoint[] pts = m1.strips[i].getPoints();
             for(int j=0;j<pts.length;j++){
-                    glmodel.updateVertex(v++, pts[j].x, pts[j].y, 0);
+                    glmodel.updateVertex(v++, -width / 2 + pts[j].x, pts[j].y, 0);
             }
         }
         // for (int i = 0; i < pnts.length; i++) {

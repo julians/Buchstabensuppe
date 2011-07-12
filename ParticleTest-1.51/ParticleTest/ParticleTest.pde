@@ -8,7 +8,6 @@
 import codeanticode.glgraphics.*;
 import com.getflourish.stt.*;
 import controlP5.*;
-import damkjer.ocd.*;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import geomerative.*;
@@ -50,7 +49,6 @@ RFont font;
 Slider2D s;
 String[] textureNames = {"+x.jpg", "-x.jpg", "+y.jpg", "-y.jpg", "+z.jpg", "-z.jpg"};
 STT stt;
-Timeline timeline;
 
 boolean applyShaders = false;
 boolean dome = false;
@@ -63,7 +61,7 @@ boolean showTimeline = false;
 float exposure, decay, density, weight;
 float fluidSize = 2;
 float dollyStep = 0;
-int maxParticles = 500;
+int maxParticles = 200;
 
 /////////////////////////////////////////////////
 
@@ -81,9 +79,12 @@ public void setup()
     // OSC
     oscP5 = new OscP5(this,12000);
     
+    // Animation 
+    Ani.init(this);
+    
     // Kamera
-    cam = new Camera(this, width / 2, height / 2, 0, 1, 10 * 1000);
-    cam.aim(width / 2, height / 2, -1.0);
+    cam = new Camera(this, width / 2, height / 2, -900, 1, 10 * 1000);
+    cam.aim(width / 2, height / 2, -1000);
     
     // Shader
     vertexShader = new GLSLShader(this, "ls.vert", "ls.frag");
@@ -116,10 +117,6 @@ public void setup()
     
     // Partikelsystem erstellen
     cloud = new CharCloud(this, maxParticles);
-    cloud.enableGravity(0);
-    cloud.addGlobalVelocity(0, 0, 0);
-    force = new ForceField(new PVector (width / 2, height / 2, 5000)).setRadius(50).setStrength(100).show();
-    cloud.addForceField(force);
 
     // Shader stuff
     exposure = 1;
@@ -152,6 +149,8 @@ public void setup()
     
         gl.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.GL_RGBA, tex.width, tex.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, byteBuffer);
     } 
+    
+    Ani.to(cam, 10.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
 }
 
 /////////////////////////////////////////////////
@@ -173,19 +172,6 @@ public void draw() {
     
     // Partikelsystem
     if (showParticles) {
-        // Ein Partikel an der Mausposition hinzufügen und zufällige Richtung geben
-        char surprise = char((byte) random(97, 122));
-
-        if (mousePressed == true) {
-            Particle p = new Particle();
-            ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);
-            p.addForceField(attraction);
-            attraction.influence(cloud.getParticles());
-            force.influence(p);
-
-            cloud.addParticle(p, mouseX, mouseY, 0).randomizeVelocity(1).addBehavior(new BounceOffWalls(0)).setLifeSpan(random(1000));
-            p.addBehavior(new Friction(0.01));
-        }
         if (applyShaders) {
             // Postprocessing Filter, der so tut als wenn Licht hinter den Buchstaben wäre und diese überstrahlt
             canvas.beginDraw();
@@ -221,16 +207,17 @@ public void draw() {
             // Partikelsystem zeichnen
             // Kamera
             // Lichter
+            cubeshader.start();
             GLGraphics renderer = (GLGraphics)g;
 
             renderer.ambient(0, 0, 250);
             renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
-            renderer.pointLight(255, 255, 255, 100, 100, 100);
+            // renderer.pointLight(255, 255, 255, 100, 100, 100);
             
             cam.dolly(dollyStep);
             cam.feed();
             cloud.updateAndDraw();
-            
+            cubeshader.stop();            
         }
     }  
         
@@ -271,12 +258,13 @@ public void drawParticle (Particle p) {
         noStroke();
         if (p instanceof CharParticle) {
             fill(255);
-            // Drehen
-            float angle = atan2(p.y - height / 2, p.x - width / 2);
             pushMatrix();
                 translate(p.x, p.y, p.z);
-                rotate(angle);
-                rotate(-HALF_PI);
+                if (!((CharParticle)p).used) {
+                    float angle = atan2(p.y - height / 2, p.x - width / 2);
+                    rotate(angle);
+                    rotate(-HALF_PI);
+                }
                 ((CharParticle) p).draw(); 
             popMatrix(); 
         } 
@@ -327,8 +315,8 @@ public void keyPressed () {
     if (key == 'e') cloud.formWord("Essen", new PVector(mouseX, mouseY, cam.position()[2]));
     if (key == 's') applyShaders = !applyShaders;
     if (key == ' ') stt.begin();
-    println(frameRate);
-}
+    if (key == 'f') println(frameRate);
+} 
 
 public void keyReleased () {
     stt.end();
@@ -337,8 +325,7 @@ public void keyReleased () {
 public void transcribe (String word, float confidence, int status) {
     switch (status) {
         case STT.SUCCESS:
-            cloud.formWord(word, new PVector(width / 2, height / 2, cam.position()[2]));  
-            // cam.aim(width / 2, height / 2, cam.position()[2] + 100 * dollyStep);     
+            cloud.formWord(word, new PVector(width / 2, height / 2, 300));  
             break;
         case STT.RECORDING:
             cloud.reactOnRecord();

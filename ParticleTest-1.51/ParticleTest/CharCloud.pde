@@ -2,7 +2,7 @@ public class CharCloud extends ParticleSystem
 {
     HashMap<String, Word> words;
     PVector target;
-    int letterspacing = 20;
+    int letterspacing = 0;
     HashMap<String, GLModel> modelCache;
     int mode = CharParticle.OBJMODEL;
     
@@ -39,19 +39,19 @@ public class CharCloud extends ParticleSystem
             // todo: Find a better solution for lower and upper case distribution
             char c;
             for (int i = 0; i < 1 + (Float) pairs.getValue() * onePercent; i++) {
-                if ((int) random(1) == 0) {
+                if ((int) random(2) == 0) {
                     c = ((String) pairs.getKey()).charAt(0);
                 } else {
                     c = (((String) pairs.getKey()).toLowerCase()).charAt(0); 
                 }
                 GLModel m = getModelForChar(c);
-                // ForceField attraction = new ForceField(new PVector (random(width), random(height), 0)).setRadius(30).setStrength(-50);            
                 CharParticle p = new CharParticle(p5, c, m);
-                // p.addForceField(attraction);
-                // attraction.influence(emitter.getParticles());
 
-                addParticle(p, random(width), random(height), random(-1000, 1000)).randomizeVelocity(1).setLifeSpan(-1);
-                p.addBehavior(new Friction(0.01));
+                addParticle(p, random(width), random(height), random(-500, 1000)).randomizeVelocity(0.1).setLifeSpan(-1);
+                ForceField attraction = new ForceField(new PVector (0, 0, 0)).setRadius(p.width).setStrength(-10);            
+                p.addForceField(attraction);
+                attraction.influence(this.getParticles());
+                p.addBehavior(new BounceOffWalls(1000));
             } 
         }
     }
@@ -64,9 +64,11 @@ public class CharCloud extends ParticleSystem
             char c = word.charAt(i);
             CharParticle p = getParticleForChar(c);
             p.tweenTo(PVector.add(pos, displace));
-            displace.add(new PVector(letterspacing, 0, 0));
+            displace.add(new PVector(p.width + letterspacing, 0, 0));
             p.disableForces();
             p.resetRotation();
+            p.slowSpin.seek(0);
+            
         }
         stopFXSpin();
     }
@@ -115,6 +117,7 @@ public class CharCloud extends ParticleSystem
         if (modelCache.containsKey("" + c)) {
             return modelCache.get("" + c);
         } else {
+            // creates a new model
             model = new OBJModel(p5, ("" + c).toUpperCase() + ".obj", "relative", TRIANGLES);
             model.enableDebug();
 
@@ -122,13 +125,28 @@ public class CharCloud extends ParticleSystem
 
             glmodel.beginUpdateVertices();   
             int index = 0;
-              for (int f = 0; f < model.getFaceCount(); f++) {
-                PVector[] fverts = model.getFaceVertices(f);
-                for (int v = 0; v < fverts.length; v++) {
-                  glmodel.updateVertex(index++, fverts[v].x, fverts[v].y, fverts[v].z);
-                }
+            float maxX = 0;
+            for (int f = 0; f < model.getFaceCount(); f++) {
+              PVector[] fverts = model.getFaceVertices(f);
+              for (int v = 0; v < fverts.length; v++) {
+                glmodel.updateVertex(index++, fverts[v].x, fverts[v].y, fverts[v].z);
+                if (fverts[v].x > maxX) maxX = fverts[v].x;
               }
+            }
+            glmodel.width = maxX;
             glmodel.endUpdateVertices();
+            
+            // glmodel.beginUpdateNormals();   
+            // index = 0;
+            // for (int f = 0; f < model.getFaceCount(); f++) {
+            //   for (int v = 0; v < model.getIndexCountInSegment(f); v++) {
+            //     PVector[] normal = model.getNormalIndicesInSegment(f, v);  
+            //     glmodel.updateNormal(index++, normal.x, normal.y, normal.z);
+            //   }
+            // }
+            // glmodel.endUpdateNormals();
+            
+            
             glmodel.initColors();
             glmodel.setColors(255);
             modelCache.put("" + c, glmodel);
