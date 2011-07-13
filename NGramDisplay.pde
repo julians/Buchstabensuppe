@@ -29,6 +29,7 @@ public class NGramDisplay
     }
     public void draw()
     {
+        
         pushMatrix();
         translate(0, 0, -this.z*this.thickness);
         float m = this.sb.getMaxValue();
@@ -95,56 +96,69 @@ public class NGramDisplay
     }
     private void calculatePoints()
     {
-        float m = this.scoreboardMaxValue;
-        float l = map(1, 0, this.ngram.decades.length, 0, this.sb.w);
+        this.calculatePolarPath();
         
-        this.pTop = new QVector2D[this.ngram.decades.length];
+        this.pTop = new QVector2D[this.pBottom.length];
+        for (int i = 0; i < this.pBottom.length; i++) {
+            if (i == 0 || i == pBottom.length-1) {
+                // Das hier sollte man auch niemanden zeigen.
+                QVector2D v;
+                QVector2D v2;
+                if (i == 0) {
+                    v = this.pBottom[i+1].get();
+                } else {
+                    v = this.pBottom[i-1].get();
+                }
+                v.sub(this.pBottom[i]);
+                v.normalize();
+                v.mult(this.thickness);
+                v.rotate(90);
+                v2 = v.get();
+                v2.rotate(180);
+                v.add(this.pBottom[i]);
+                v2.add(this.pBottom[i]);
+                if (v.mag() < v2.mag()) {
+                    pTop[i] = v;
+                } else {
+                    pTop[i] = v2;                    
+                }
+            } else {
+                // Über die folgenden Variablennamen könnte man bei Gelegenheit noch mal nachdenken.
+                QVector2D hui = displace(pBottom[i], pBottom[i+1]);
+                float p = (hui.mag() - thickness) / hui.mag();
+                QVector2D v1 = pBottom[i].get();
+                QVector2D v2 = pBottom[i+1].get();
+                v1.mult(p);
+                v2.mult(p);
+
+                QVector2D hui2 = displace(pBottom[i], pBottom[i-1]);
+                float p2 = (hui2.mag() - thickness) / hui2.mag();
+                QVector2D v12 = pBottom[i].get();
+                QVector2D v22 = pBottom[i-1].get();
+                v12.mult(p2);
+                v22.mult(p2);
+
+                pTop[i] = lineIntersection(v1.x, v1.y, v2.x, v2.y, v12.x, v12.y, v22.x, v22.y);
+            }
+        }
+    }
+    private void calculatePolarPath ()
+    {
         this.pBottom = new QVector2D[this.ngram.decades.length];
         for (int i = 0; i < this.ngram.decades.length; i++) {
-            this.pBottom[i] = new QVector2D(i*l, map(this.ngram.decades[i], 0, m, this.sb.h, 0));
+            float angle = map(i, 0, this.ngram.decades.length-1, this.sb.degreeSpan, 0);
+            float radius = map(this.ngram.decades[i], 0, this.scoreboardMaxValue, width/2*this.sb.radiusBottom, width/2*this.sb.radiusTop);
+            this.pBottom[i] = new QVector2D(1, 0);
+            this.pBottom[i].rotate(angle);
+            this.pBottom[i].mult(radius);
         }
-        for (int i = 0; i < pBottom.length; i++) {
-            float beforeAngle;
-            if (i == 0) {
-                beforeAngle = new QVector2D(l, 0).angleBetween(new QVector2D(0,l));
-            } else {
-                beforeAngle = new QVector2D(l, pBottom[i-1].y-pBottom[i].y).angleBetween(new QVector2D(0,l));
-            }
-            float afterAngle;
-            if (i == pBottom.length-1) {
-                afterAngle = new QVector2D(l, 0).angleBetween(new QVector2D(0,-l));
-            } else {
-                afterAngle = new QVector2D(l, pBottom[i+1].y-pBottom[i].y).angleBetween(new QVector2D(0,-l));
-            }
-            
-            QVector2D before1;
-            QVector2D before2 = pBottom[i].get();
-            QVector2D after1 = pBottom[i].get();
-            QVector2D after2;
-            if (i == 0) {
-                before1 = pBottom[i].get();
-                before1.x -= l;
-            } else {
-                before1 = pBottom[i-1].get();
-            }
-            
-            if (i == pBottom.length-1) {
-                after2 = pBottom[i].get();
-                after2.x += l;
-            } else {
-                after2 = pBottom[i+1].get();
-            }
-
-            before1.add(new QVector2D(-thickness, 0).rotateChain(degrees(beforeAngle)));
-            before2.add(new QVector2D(-thickness, 0).rotateChain(degrees(beforeAngle)));
-            after1.add(new QVector2D(-thickness, 0).rotateChain(degrees(afterAngle)));
-            after2.add(new QVector2D(-thickness, 0).rotateChain(degrees(afterAngle)));
-
-            this.pTop[i] = this.lineIntersection(before1.x, before1.y, before2.x, before2.y, after1.x, after1.y, after2.x, after2.y);
-            if (this.pTop[i] == null) {
-                this.pTop[i] = new QVector2D(i*l, this.pBottom[i].y-5);
-            }
-        }
+    }
+    QVector2D displace (QVector2D a, QVector2D b)
+    {
+        QVector2D aToB = b.get();
+        aToB.sub(a);
+        QVector2D normalVector = aToB.normalVector();
+        return lineIntersection(0, 0, normalVector.x, normalVector.y, a.x, a.y, b.x, b.y);
     }
     QVector2D lineIntersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
     {
