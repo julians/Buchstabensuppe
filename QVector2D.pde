@@ -58,4 +58,9 @@ class QVector2D extends PVector
   {
     return PVector.angleBetween(new PVector(this.x, this.y, 0), new PVector(v.x, v.y, 0));
   }
+  
+  QVector2D normalVector()
+  {
+      return new QVector2D(-this.y, this.x);
+  }
 }
