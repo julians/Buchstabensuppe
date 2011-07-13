@@ -17,6 +17,10 @@ import javax.media.opengl.*;
 import netP5.*;
 import oscP5.*;
 import processing.opengl.*;
+import processing.serial.*;
+
+Serial myPort;
+int pusher;
 
 AudioInput microphone;
 AudioPlayer sample;
@@ -62,7 +66,7 @@ boolean showTimeline = false;
 float exposure, decay, density, weight;
 float fluidSize = 2;
 float dollyStep = 0;
-int maxParticles = 200;
+int maxParticles = 500;
 
 /////////////////////////////////////////////////
 
@@ -76,6 +80,10 @@ public void setup()
     }
     frameRate(30);
     hint(ENABLE_OPENGL_4X_SMOOTH);
+ 
+    // Arduino
+    String portName = Serial.list()[0];
+    myPort = new Serial(this, portName, 9600);
     
     // OSC
     oscP5 = new OscP5(this,12000);
@@ -162,7 +170,14 @@ public void setup()
 /////////////////////////////////////////////////
 
 public void draw() {
-    // background(65, 95, 170);   
+    
+    // Arduino schauen ob der Taster gedrückt wird
+    if ( myPort.available() > 0) {  // If data is available,
+      pusher = myPort.read();         // read it and store it in val
+    }
+    
+    if (pusher == 0) stt.end(); else stt.begin();
+    
     background(0);
     
     // // OpenGL Motion Blur
@@ -303,6 +318,9 @@ public void drawParticle (Particle p) {
                     float angle = atan2(p.y - height / 2, p.x - width / 2);
                     rotate(angle);
                     rotate(-HALF_PI);
+                    float a = radians(map(dist(p.x, p.y, width / 2, height / 2), 0, width, 90, 0));
+                    // rotateZ(a);
+                    rotateX(a);
                     ((CharParticle) p).draw(); 
                 }
             popMatrix(); 

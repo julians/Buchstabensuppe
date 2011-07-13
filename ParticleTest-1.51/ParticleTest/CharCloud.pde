@@ -67,7 +67,7 @@ public class CharCloud extends ParticleSystem
                     break;
                 }
                 
-                addParticle(p, random(width), random(height), random(-500, 1000)).randomizeVelocity(0.1).setLifeSpan(-1);
+                addParticle(p, random(width), random(height), random(-500, 500)).randomizeVelocity(0.1).setLifeSpan(-1);
                 ForceField attraction = new ForceField(new PVector (0, 0, 0)).setRadius(p.width).setStrength(-1000);            
                 p.addForceField(attraction);
                 attraction.influence(this.getParticles());
