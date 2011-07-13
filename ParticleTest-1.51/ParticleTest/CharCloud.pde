@@ -25,9 +25,10 @@ public class CharCloud extends ParticleSystem
         for (int i = 0; i < characters.length; i++) {
             characters[i] = getParticleForChar(s.charAt(i));
         }
-        Word word = new Word(s, characters);
+        PVector pos = new PVector(width /2, height / 2, 0);
+        Word word = new Word(s, characters, pos);
         words.put(s, word);
-        addParticle(word, width / 2, height / 2, 0).setLifeSpan(-1);
+        addParticle(word, pos.x, pos.y, pos.z).setLifeSpan(-1);
     }
     public void removeWord (String s) {} // auflösen oder so
     

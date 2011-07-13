@@ -4,15 +4,15 @@ public class Word extends Particle
     CharParticle[] characters;
     int letterspacing = 0;
     float angle = 0;
-    float radius = width / 2;
+    float radius = width / 4;
     Ani animateAngle;
     Ani animateRadius;
     PVector center = new PVector(width / 2, height / 2, 0);
     boolean dropping = false;
     float foo;
     
-    public Word (String word, CharParticle[] characters) {
-        super();
+    public Word (String word, CharParticle[] characters, PVector pos) {
+        super(pos, new PVector(0, 0, 0));
         this.word = word;
         this.characters = characters;
         setup();
@@ -39,7 +39,8 @@ public class Word extends Particle
             
             float targetX = width / 2 + displace.x;
             float targetY = height;
-            float targetZ = this.z;
+            float targetZ = z;
+            println(this.z);
             
             // Ani.to(p, 4, "x:" + targetX + ", y: " + targetY + ", z:" + targetZ, Ani.BOUNCE_IN_OUT, "onEnd: setUsed");
             
@@ -51,7 +52,7 @@ public class Word extends Particle
         if (!dropping) {
             float x = center.x + sin(radians(angle)) * radius;
             float y = center.y + cos(radians(angle)) * radius;
-            this.setPosition(x, y, this.z);
+            this.setPosition(x, y, z);
         
             PVector displace = new PVector(0, 0, 0);
         
@@ -98,7 +99,7 @@ public class Word extends Particle
         animateRadius.setEasing(Ani.LINEAR);
         animateRadius.start();
 
-        dropping = false;
+        dropping = false; 
     }
     public void onFinishFirstRound (Ani theAni) {
         this.angle = 0;
