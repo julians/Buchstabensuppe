@@ -33,6 +33,7 @@ GLModel distributionGraph;
 GLSLShader cubeshader;
 GLSLShader phongShader;
 GLSLShader vertexShader;
+GLSLShader glossyShader;
 GLTexture backgroundTex;
 GLTexture cloudTex;
 GLTexture tex;
@@ -89,6 +90,8 @@ public void setup()
     // Shader
     vertexShader = new GLSLShader(this, "ls.vert", "ls.frag");
     phongShader = new GLSLShader(this, "ps.vert", "ps.frag");
+    glossyShader = new GLSLShader(this, "glossy.vert", "glossy.frag");
+    
     canvas = new GLGraphicsOffScreen(this, width, height);
     
     backgroundTex = new GLTexture(this, "background.jpg");
@@ -140,15 +143,18 @@ public void setup()
     gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
     gl.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
     
-    for (int i = 0; i < textureNames.length; i++) {
-        tex = new GLTexture(this, textureNames[i]);
-        byteBuffer = ByteBuffer.allocate(tex.pixels.length * 4);
-        intBuffer = byteBuffer.asIntBuffer();
+    textures = new GLTexture[6];
+    for (int i = 0; i < 6; i++) {
+        GLTexture tex = new GLTexture(this, textureNames[i]);
+        textures[i] = tex;
+    }
     
-        intBuffer.put(tex.pixels);
-    
-        gl.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.GL_RGBA, tex.width, tex.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, byteBuffer);
-    } 
+    for (int i = 0; i < 6; i++) {
+        GLTexture tex = textures[i];
+        int[] pix = new int[tex.width * tex.height];
+        tex.getBuffer(pix, ARGB, GLConstants.TEX_BYTE);
+        gl.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.GL_RGBA, tex.width, tex.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, IntBuffer.wrap(pix));
+    }
     
     Ani.to(cam, 10.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
 }
@@ -204,20 +210,50 @@ public void draw() {
             vertexShader.stop();
             
         } else {
-            // Partikelsystem zeichnen
-            // Kamera
-            // Lichter
+            // CubeShader
             cubeshader.start();
-            GLGraphics renderer = (GLGraphics)g;
-
-            renderer.ambient(0, 0, 250);
-            renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
-            // renderer.pointLight(255, 255, 255, 100, 100, 100);
+                cubeshader.setFloatUniform("RefractionIndex", 0.5);    
+                cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
+                cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
+                cubeshader.setFloatUniform("Roughness", 0.5);
+                cubeshader.setFloatUniform("SpecularIntensity", 1.0);
+                
+                GLGraphics renderer = (GLGraphics)g;
+                renderer.ambient(0, 0, 250);
+                renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
+                // renderer.pointLight(255, 255, 255, 100, 100, 100);
+                
+                cam.dolly(dollyStep);
+                cam.feed();
+                cloud.updateAndDraw();
+            cubeshader.stop();  
             
-            cam.dolly(dollyStep);
-            cam.feed();
-            cloud.updateAndDraw();
-            cubeshader.stop();            
+            // // Glossy
+            // glossyShader.start();
+            //     glossyShader.setVecUniform("AmbientColour", 0.836, 0.85, 1);
+            //     glossyShader.setFloatUniform("AmbientIntensity", 1.0);
+            //     glossyShader.setVecUniform("DiffuseColour", 0.63, 1.0, 1.0);
+            //     glossyShader.setFloatUniform("DiffuseIntensity", 0.43);
+            //     glossyShader.setVecUniform("LightPos", 1.0, 0.5, 0.35);
+            //     glossyShader.setFloatUniform("Roughness", 0.5);
+            //     glossyShader.setFloatUniform("Sharpness", 0.0);
+            //     glossyShader.setVecUniform("SpecularColour", 0.0, 1.0, 1.0);
+            //     glossyShader.setFloatUniform("SpecularIntensity", 0.5);
+            //     
+            //     // draw
+            //     GLGraphics renderer = (GLGraphics)g;
+            //     // renderer.ambient(0, 0, 250);
+            //     // renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
+            //     // renderer.pointLight(255, 255, 255, 100, 100, 100);
+            //     
+            //     cam.dolly(dollyStep);
+            //     cam.feed();
+            //     cloud.updateAndDraw();
+            //     renderer.translate(mouseX, mouseY, 0);
+            //     renderer.sphere(100);
+            //     
+            // glossyShader.stop();
+                
         }
     }  
         
@@ -245,7 +281,10 @@ public void drawParticle (Particle p) {
                 // canvas.rotate(-HALF_PI);
                 ((CharParticle) p).draw(canvas); 
             canvas.popMatrix(); 
-        } 
+        } else if (p instanceof Word) {
+            println("updating word");
+            ((Word) p).update();
+        }
         else {
             canvas.beginShape(POINTS);
             canvas.stroke(255);
@@ -264,11 +303,12 @@ public void drawParticle (Particle p) {
                     float angle = atan2(p.y - height / 2, p.x - width / 2);
                     rotate(angle);
                     rotate(-HALF_PI);
+                    ((CharParticle) p).draw(); 
                 }
-                ((CharParticle) p).draw(); 
             popMatrix(); 
-        } 
-        else {
+        } else if (p instanceof Word) {
+            ((Word) p).update();
+        } else {
             stroke(255 - p.progress * 255);
             point(p.x, p.y);
         }
@@ -312,10 +352,10 @@ public void initMinim () {
 
 public void keyPressed () {
     if (key == 'p') showParticles = !showParticles;
-    if (key == 'e') cloud.formWord("Essen", new PVector(mouseX, mouseY, cam.position()[2]));
     if (key == 's') applyShaders = !applyShaders;
     if (key == ' ') stt.begin();
     if (key == 'f') println(frameRate);
+    if (key == 'e') cloud.addWord("Essen");
 } 
 
 public void keyReleased () {
@@ -325,7 +365,7 @@ public void keyReleased () {
 public void transcribe (String word, float confidence, int status) {
     switch (status) {
         case STT.SUCCESS:
-            cloud.formWord(word, new PVector(width / 2, height / 2, 300));  
+            cloud.addWord(word);  
             break;
         case STT.RECORDING:
             cloud.reactOnRecord();

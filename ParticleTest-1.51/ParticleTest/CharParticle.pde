@@ -53,7 +53,7 @@ class CharParticle extends Particle
     void setup() 
     { 
         shp = font.toShape(this.character);
-        // RCommand.setSegmentator(RCommand.UNIFORMSTEP);
+        RCommand.setSegmentator(RCommand.UNIFORMSTEP);
         // RCommand.setSegmentStep(1);
         // RCommand.setSegmentAngle(HALF_PI);
         pnts = shp.getPointsInPaths();
@@ -285,6 +285,9 @@ class CharParticle extends Particle
     {
         canvas.rotateX(-rx);
         canvas.rotateY(-ry);
+    }
+    void setUsed() {
+        this.used = true;
     }
 }
 

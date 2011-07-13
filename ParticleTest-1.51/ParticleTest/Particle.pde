@@ -3,6 +3,7 @@ class Particle
     ArrayList<Behavior> behaviors;
     ArrayList<ForceField> forces;
     boolean alive;
+    boolean ani;
     boolean useForces;
     boolean useTarget;
     float age;
@@ -12,10 +13,11 @@ class Particle
     float size;
     float span;
     float vx, vy, vz;
-    float x, y, z;
+    public float x, y, z;
     PVector target;
     PVector position;
     PVector velocity;
+    float foo;
 
     
     public Particle () 
@@ -59,22 +61,24 @@ class Particle
             dir.mult(0.05);
             velocity.set(dir);
         }
-        // update position
-        position.add(velocity);
-        
-        // apply behaviors
-        for (int i = 0; i < behaviors.size(); i++) behaviors.get(i).apply(this);
-        
-        // update x, y, z to fit vectors
-        updatePosition();
-        updateVelocity();
-        
-        if (useForces) {
-            for (int i = 0; i < forces.size(); i++) {
-                ForceField f = forces.get(i);
-                f.setPosition(this.position);
-                f.apply();
-            }   
+        if (!ani) {
+            // update position
+            position.add(velocity);
+
+            // apply behaviors
+            for (int i = 0; i < behaviors.size(); i++) behaviors.get(i).apply(this);
+
+            // update x, y, z to fit vectors
+            updatePosition();
+            updateVelocity();
+
+            if (useForces) {
+                for (int i = 0; i < forces.size(); i++) {
+                    ForceField f = forces.get(i);
+                    f.setPosition(this.position);
+                    f.apply();
+                }   
+            }
         }
     }
     public void die () 
@@ -138,6 +142,10 @@ class Particle
     }
     Particle removeBehavior (Behavior b) {
         this.behaviors.remove(b);
+        return this;
+    }
+    Particle removeAllBehaviors () {
+        this.behaviors.clear();
         return this;
     }
     // ForceFields
