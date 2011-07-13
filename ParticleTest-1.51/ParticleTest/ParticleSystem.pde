@@ -73,21 +73,23 @@ class ParticleSystem
     }
     public void drawParticle(Particle p) 
     {   
-        // uses the drawParticle method in the main program
-        if (this.particleDrawEvent != null) {
-            try {
-                this.particleDrawEvent.invoke(p5, p);
-            } catch (IllegalArgumentException e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		} catch (IllegalAccessException e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		} catch (InvocationTargetException e) {
-                // TODO Auto-generated catch block
-    			e.printStackTrace();
-            }
-        }
+        // // uses the drawParticle method in the main program
+        // if (this.particleDrawEvent != null) {
+        //     try {
+        //         this.particleDrawEvent.invoke(p5, p);
+        //     } catch (IllegalArgumentException e) {
+    	// 		// TODO Auto-generated catch block
+    	// 		e.printStackTrace();
+    	// 	} catch (IllegalAccessException e) {
+    	// 		// TODO Auto-generated catch block
+    	// 		e.printStackTrace();
+    	// 	} catch (InvocationTargetException e) {
+        //         // TODO Auto-generated catch block
+    	// 		e.printStackTrace();
+        //     }
+        // }
+        p.draw();
+        p.drawForces();
     }
     void updateParticle (Particle p) {
         // apply global velocities
@@ -107,28 +109,33 @@ class ParticleSystem
     }
     void addParticles(float x, float y, float z, int count)
     {
-        for(int i = 0; i < count; i++) addParticle(x + random(-15, 15), y + random(-15, 15), z + random(-15, 15));
+        for(int i = 0; i < count; i++) {
+            Particle particle = new Particle(x + random(-15, 15), y + random(-15, 15), z + random(-15, 15));
+            addParticle(particle);
+        }
     }
     Particle addParticle (float x, float y, float z, float vx, float vy, float vz) 
     {
-        Particle particle = new Particle();
-        return this.addParticle(particle, x, y, z, vx, vy, vz);
-    }
-    Particle addParticle (Particle p, float x, float y, float z) 
-    {
-        return this.addParticle(p, x, y, z, 0, 0, 0);
+        Particle particle = new Particle(x, y, z, vx, vy, vz);
+        return this.addParticle(particle);
     }
     Particle addParticle (float x, float y, float z) 
     {
+        Particle particle = new Particle(new PVector(x, y, z));
         return this.addParticle(x, y, z, 0, 0, 0);
+    }
+    Particle addParticle (Particle p, float x, float y, float z) 
+    {
+        p.setPosition(x, y, z);
+        return this.addParticle(p);
     }
     Particle addParticle () 
     {
-        return this.addParticle(random(width), random(height), 0);
+        Particle particle = new Particle(new PVector(random(width), random(height), 0));
+        return this.addParticle(particle);
     }
-    Particle addParticle (Particle particle, float x, float y, float z, float vx, float vy, float vz) 
+    Particle addParticle (Particle particle) 
     {
-        particle.init(x, y, z, vx, vy, vz);
         if (maxParticles == -1 || particles.size() < maxParticles) {
             particles.add(particle);
             for (int i = 0; i < forces.size(); i++) {

@@ -21,6 +21,7 @@ import processing.serial.*;
 
 Serial myPort;
 int pusher;
+boolean arduino = false;
 
 AudioInput microphone;
 AudioPlayer sample;
@@ -82,8 +83,10 @@ public void setup()
     hint(ENABLE_OPENGL_4X_SMOOTH);
  
     // Arduino
-    String portName = Serial.list()[0];
-    myPort = new Serial(this, portName, 9600);
+    if (arduino) {
+        String portName = Serial.list()[0];
+        myPort = new Serial(this, portName, 9600);        
+    }
     
     // OSC
     oscP5 = new OscP5(this,12000);
@@ -172,12 +175,11 @@ public void setup()
 public void draw() {
     
     // Arduino schauen ob der Taster gedrückt wird
-    if ( myPort.available() > 0) {  // If data is available,
-      pusher = myPort.read();         // read it and store it in val
+    if (arduino) {
+        if ( myPort.available() > 0) pusher = myPort.read();
+        if (pusher == 0) stt.end(); else stt.begin();        
     }
-    
-    if (pusher == 0) stt.end(); else stt.begin();
-    
+
     background(0);
     
     // // OpenGL Motion Blur
@@ -226,12 +228,12 @@ public void draw() {
             
         } else {
             // CubeShader
-            cubeshader.start();
-                cubeshader.setFloatUniform("RefractionIndex", 0.5);    
-                cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
-                cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
-                cubeshader.setFloatUniform("Roughness", 0.5);
-                cubeshader.setFloatUniform("SpecularIntensity", 1.0);
+            // cubeshader.start();
+            //     cubeshader.setFloatUniform("RefractionIndex", 0.5);    
+            //     cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
+            //     cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
+            //     cubeshader.setFloatUniform("Roughness", 0.5);
+            //     cubeshader.setFloatUniform("SpecularIntensity", 1.0);
                 
                 GLGraphics renderer = (GLGraphics)g;
                 renderer.ambient(0, 0, 250);
@@ -241,7 +243,7 @@ public void draw() {
                 cam.dolly(dollyStep);
                 cam.feed();
                 cloud.updateAndDraw();
-            cubeshader.stop();  
+            // cubeshader.stop();  
             
             // // Glossy
             // glossyShader.start();
@@ -277,61 +279,6 @@ public void draw() {
 }
 
 /////////////////////////////////////////////////
-
-// Wird automatisch vom Partikelsystem aufgerufen
-
-public void drawParticle (Particle p) {
-    // In die Textur zeichnen wenn Shader aktiviert sind
-    if(applyShaders) {
-        canvas.fill(255 - p.progress * 255);
-        if (p instanceof CharParticle) {
-            canvas.fill(255);
-            canvas.noStroke();
-            // canvas.fill(255, 100, 0);
-            // Drehen
-            float angle = atan2(p.y - height / 2, p.x - width / 2);
-            canvas.pushMatrix();
-                canvas.translate(p.x, p.y, p.z);
-                // canvas.rotate(angle);
-                // canvas.rotate(-HALF_PI);
-                ((CharParticle) p).draw(canvas); 
-            canvas.popMatrix(); 
-        } else if (p instanceof Word) {
-            println("updating word");
-            ((Word) p).update();
-        }
-        else {
-            canvas.beginShape(POINTS);
-            canvas.stroke(255);
-            canvas.vertex(p.x, p.y, p.z);
-            canvas.endShape(CLOSE);
-        }
-    // Ganz normal zeichnen
-    } else {
-        fill(255 - p.progress * 255);
-        noStroke();
-        if (p instanceof CharParticle) {
-            fill(255);
-            pushMatrix();
-                translate(p.x, p.y, p.z);
-                if (!((CharParticle)p).used) {
-                    float angle = atan2(p.y - height / 2, p.x - width / 2);
-                    rotate(angle);
-                    rotate(-HALF_PI);
-                    float a = radians(map(dist(p.x, p.y, width / 2, height / 2), 0, width, 90, 0));
-                    // rotateZ(a);
-                    rotateX(a);
-                    ((CharParticle) p).draw(); 
-                }
-            popMatrix(); 
-        } else if (p instanceof Word) {
-            ((Word) p).update();
-        } else {
-            stroke(255 - p.progress * 255);
-            point(p.x, p.y);
-        }
-    }
-}
 
 public void debug () {
     stroke(255);

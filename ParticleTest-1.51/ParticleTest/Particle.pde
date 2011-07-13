@@ -20,16 +20,16 @@ class Particle
     float foo;
 
     
-    public Particle () 
-    {
-        this.forces = new ArrayList<ForceField>();
-    }
-    
     public Particle (PVector pos, PVector vel) {
-        this.init(pos, vel);
+        this(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
     }
-    
-    public void init(float x, float y, float z, float vx, float vy, float vz) 
+    public Particle (float x, float y, float z) {
+        this(x, y, z, 0, 0, 0);
+    } 
+    public Particle (PVector pos) {
+        this(pos, new PVector(0, 0, 0));
+    }
+    public Particle (float x, float y, float z, float vx, float vy, float vz) 
     {
         this.position = new PVector(x, y, z);
         this.updatePosition();
@@ -45,10 +45,7 @@ class Particle
         this.useForces = true;
         this.useTarget = false;
         this.target = new PVector();
-    }
-    public void init (PVector pos, PVector vel) 
-    {
-        this.init(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
+        this.forces = new ArrayList<ForceField>();
     }
     public void update () 
     {
@@ -75,7 +72,8 @@ class Particle
             if (useForces) {
                 for (int i = 0; i < forces.size(); i++) {
                     ForceField f = forces.get(i);
-                    f.setPosition(this.position);
+                    f.update();
+                    f.setVelocity(PVector.add(f.velocity, this.velocity));
                     f.apply();
                 }   
             }
@@ -85,6 +83,14 @@ class Particle
     {
         alive = false;
         forces.clear();
+    }
+    public void draw() {
+        // override method to display the particle
+    }
+    public void drawForces() {
+        for (int i = 0; i < forces.size(); i++) {
+            forces.get(i).draw();
+        }
     }
     Particle randomizeVelocity (float range) {
         return setVelocity(random(-range, range), random(-range, range), random(-range, range));
@@ -123,6 +129,12 @@ class Particle
     Particle setVelocity (float vx, float vy, float vz) 
     {
         velocity.set(vx, vy, vz);
+        updateVelocity();
+        return this;
+    }
+    Particle setVelocity (PVector vel) 
+    {
+        velocity.set(vel);
         updateVelocity();
         return this;
     }

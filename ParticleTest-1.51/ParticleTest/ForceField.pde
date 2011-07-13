@@ -6,11 +6,6 @@ class ForceField extends Particle
     boolean visible;
     ArrayList<Particle> particles;
     
-    ForceField () 
-    {
-        super();
-    }
-    
     ForceField (PVector pos) 
     {
         this(pos, new PVector(0, 0, 0), 0, 0, 2);
@@ -27,7 +22,7 @@ class ForceField extends Particle
     }
     ForceField (PVector pos, PVector vel, float radius, float strength, float ramp) 
     {
-        this.init(pos, vel);
+        super(pos, vel);
         this.radius = radius;
         this.strength = strength;
         this.ramp = ramp;
@@ -64,14 +59,17 @@ class ForceField extends Particle
     }
     void draw () 
     {
-        noFill();
-        stroke(255, 50);
-        // sphereDetail(10);
-        pushMatrix();
-            translate(position.x, position.y, position.z);
-            sphere(radius);
-            // ellipse(0, 0, radius, radius);
-        popMatrix();
+        if (visible) {
+            noFill();
+            stroke(255, 50);
+            // sphereDetail(10);
+            pushMatrix();
+                translate(position.x, position.y, position.z);
+                sphere(radius);
+                // ellipse(0, 0, radius, radius);
+            popMatrix();            
+        }
+
     }
     void draw (GLGraphicsOffScreen canvas) 
     {
@@ -109,7 +107,7 @@ class ForceField extends Particle
     }
     void die () 
     {
-        println("Force can’t die!");
+
     }
     
 }
