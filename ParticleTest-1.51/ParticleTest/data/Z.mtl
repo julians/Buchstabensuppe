@@ -5,7 +5,7 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd -s 0.520920 0.724779 1.0 -o 0.247374 0.100855 1.0 Z.psd 
+map_Kd -s 0.500553 0.620259 1.0 -o 0.257562 0.139122 1.0 Z.JPG 
 
 newmtl Material - Vorderseite mit abgeflachten Kanten Z
 Ka 0.117647 0.117647 0.117647
@@ -14,7 +14,7 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd -s 0.520920 0.724779 1.0 -o 0.247374 0.100855 1.0 Z.psd 
+map_Kd -s 0.500553 0.620259 1.0 -o 0.257562 0.139122 1.0 Z.JPG 
 
 newmtl Material - Extrusion Z
 Ka 0.117647 0.117647 0.117647
@@ -23,7 +23,7 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd Material - Extrusion Z - Standardtextur.psd 
+map_Kd Material - Extrusion Z - Standardtextur.JPG 
 
 newmtl Material - Rückseite mit abgeflachten Kanten Z
 Ka 0.117647 0.117647 0.117647
@@ -32,7 +32,7 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd -s 0.520920 0.724779 1.0 -o 0.247374 0.100855 1.0 Z.psd 
+map_Kd -s 0.500553 0.620259 1.0 -o 0.257562 0.139122 1.0 Z.JPG 
 
 newmtl Material - Aufgeblasene Rückseite Z
 Ka 0.117647 0.117647 0.117647
@@ -41,5 +41,5 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd -s 0.520920 0.724779 1.0 -o 0.247374 0.100855 1.0 Z.psd 
+map_Kd -s 0.500553 0.620259 1.0 -o 0.257562 0.139122 1.0 Z.JPG 
 
