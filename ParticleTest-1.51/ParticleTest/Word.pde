@@ -47,7 +47,7 @@ public class Word extends Particle
             addForceField(attractor);
             attractor.influence(p);
         }
-        this.circleSpeed = random(1, 20);
+        this.circleSpeed = random(15, 20);
         this.zSpeed = random(1, 30);
         Ani.to(this, 5, "circleSpeed", 0.1, Ani.EXPO_OUT);
         Ani.to(this, 3, "zSpeed", 0.1, Ani.EXPO_OUT);
