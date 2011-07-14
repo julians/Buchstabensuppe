@@ -1,4 +1,6 @@
 .DS_Store
+*.wav
+*.flac
 data/2011*
 compiled/buchstabensuppe.java
 
