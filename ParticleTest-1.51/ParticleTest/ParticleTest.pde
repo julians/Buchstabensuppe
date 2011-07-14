@@ -73,7 +73,7 @@ ThreadedNGramGetter nGramGetter;
 ArrayList words;
 ArrayList words2;
 
-boolean dome = true;
+boolean dome = false;
 /////////////////////////////////////////////////
 
 public void setup() 

@@ -47,6 +47,16 @@ class Scoreboard
             }
         }
     }
+    public float getColour (String word)
+    {
+        for (int i = 0; i < this.ngrams.size(); i++) {
+            NGramDisplay ngramDisplay = (NGramDisplay) this.ngrams.get(i);
+            if (ngramDisplay.ngram.word.equals(word)) {
+                return ngramDisplay.colour;
+            }
+        }
+        return -1;
+    }
     private void calculateMaxValue ()
     {
         this.calculateMaxValue(false);

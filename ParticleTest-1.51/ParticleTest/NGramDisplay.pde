@@ -2,7 +2,7 @@ public class NGramDisplay
 {
     private Scoreboard sb;
     public NGram ngram;
-    private float colour;
+    public float colour;
     private float opacity = 0;
     public boolean alive = true;
     public float thickness = 9;

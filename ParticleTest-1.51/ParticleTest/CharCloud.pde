@@ -53,6 +53,7 @@ public class CharCloud extends ParticleSystem
         PVector pos = new PVector(random(width), random(height), random(400, 500));
         PVector vel = new PVector(0, 0, 0);
         Word word = new Word(s, characters, pos, vel);
+        word.registerScoreboard(this.scoreboard);
         words.put(s, word);
         addParticle(word).setLifeSpan(-1);
         nGramGetter.getNGram(s);
