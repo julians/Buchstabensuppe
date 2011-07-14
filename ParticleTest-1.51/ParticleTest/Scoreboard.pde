@@ -23,6 +23,7 @@ class Scoreboard
     {
         this.ngrams.add(new NGramDisplay(this, ngram, this.ngrams.size()));
         this.calculateMaxValue();
+        println("Ngram added: " + ngram.word);
     }
     public void remove (String word)
     {
@@ -59,7 +60,7 @@ class Scoreboard
             }
         }
         if (this.maxValue != old_maxValue) {
-            Ani.to(this, 1.5, "currentScale", this.maxValue);
+            Ani.to(this, 5, "currentScale", this.maxValue);
         }
     }
     public float getMaxValue ()
@@ -68,26 +69,9 @@ class Scoreboard
     }
     public void draw ()
     {
-        /*
-        noStroke();
-        fill(360, 0, 75);
-        beginShape(QUAD_STRIP);
-        vertex(0, 0, 0);
-        vertex(0, 0, 10);
-        vertex(0, this.h, 0);
-        vertex(0, this.h, 10);
-        vertex(this.w, this.h, 0);
-        vertex(this.w, this.h, 10);
-        vertex(this.w, this.h+10, 0);
-        vertex(this.w, this.h+10, 10);
-        vertex(-10, this.h+10, 0);
-        vertex(-10, this.h+10, 10);
-        vertex(-10, 0, 0);
-        vertex(-10, 0, 10);
-        endShape(CLOSE);
-        */
         pushMatrix();
         translate(width/2, height/2);
+        fill(360, 100, 50, 255);
         rotate(radians(this.rotation));
         for (int i = 0; i < this.ngrams.size(); i++) {
             NGramDisplay ngramDisplay = (NGramDisplay) this.ngrams.get(i);

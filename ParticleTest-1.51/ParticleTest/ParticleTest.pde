@@ -17,6 +17,10 @@ import javax.media.opengl.*;
 import netP5.*;
 import oscP5.*;
 
+import processing.opengl.*;
+import de.looksgood.ani.*;
+
+
 AudioInput microphone;
 AudioPlayer sample;
 ByteBuffer byteBuffer;
@@ -63,6 +67,11 @@ float fluidSize = 2;
 float dollyStep = 0;
 int maxParticles = 500;
 
+Scoreboard scoreboard;
+ThreadedNGramGetter nGramGetter;
+ArrayList words;
+ArrayList words2;
+
 /////////////////////////////////////////////////
 
 public void setup() 
@@ -73,6 +82,7 @@ public void setup()
     } else {
         size(800, 800, GLConstants.GLGRAPHICS);   
     }
+    colorMode(HSB, 360, 100, 100);
     frameRate(30);
     hint(ENABLE_OPENGL_4X_SMOOTH);
     
@@ -154,7 +164,22 @@ public void setup()
         gl.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.GL_RGBA, tex.width, tex.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, IntBuffer.wrap(pix));
     }
     
-    Ani.to(cam, 1.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
+    Ani.to(cam, 10.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
+    
+    scoreboard = new Scoreboard(90, 0.5, 0.9);
+    words = new ArrayList();
+    words.add("waschmittelwerbung");
+    words.add("raumstation");
+    words.add("zahnarzt");
+    words.add("essen");
+    
+    words2 = new ArrayList();
+    words2.add("essen");
+    words2.add("zahnarzt");
+    words2.add("raumstation");
+    words2.add("waschmittelwerbung");
+    
+    nGramGetter = new ThreadedNGramGetter(this);
 }
 
 /////////////////////////////////////////////////
@@ -164,22 +189,60 @@ public void draw() {
     
     // Partikelsystem
     if (showParticles) {
-         cubeshader.start();
-            cubeshader.setFloatUniform("RefractionIndex", 0.5);    
-            cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
-            cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
-            cubeshader.setFloatUniform("Roughness", 0.5);
-            cubeshader.setFloatUniform("SpecularIntensity", 1.0);
-         
-            GLGraphics renderer = (GLGraphics)g;
-            renderer.ambient(0, 0, 250);
-            renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
-            // renderer.pointLight(255, 255, 255, 100, 100, 100);
+       //lights();
+       // CubeShader
+       cubeshader.start();
+           cubeshader.setFloatUniform("RefractionIndex", 0.5);    
+           cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
+           cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
+           cubeshader.setFloatUniform("Roughness", 0.5);
+           cubeshader.setFloatUniform("SpecularIntensity", 1.0);
+           
+           GLGraphics renderer = (GLGraphics)g;
+           //renderer.ambient(0, 0, 250);
+           //renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
+           // renderer.pointLight(255, 255, 255, 100, 100, 100);
+           
+           cam.dolly(dollyStep);
+           cam.feed();
+           cloud.updateAndDraw();
+       cubeshader.stop();
             
-            cam.dolly(dollyStep);
-            cam.feed();
-            cloud.updateAndDraw();
-         cubeshader.stop();      
+            // Glossy
+            //glossyShader.start();
+            //    glossyShader.setVecUniform("AmbientColour", 0.836, 0.85, 1);
+            //    glossyShader.setFloatUniform("AmbientIntensity", 0.5);
+            //    glossyShader.setVecUniform("DiffuseColour", 0.63, 1.0, 1.0);
+            //    glossyShader.setFloatUniform("DiffuseIntensity", 0.43);
+            //    glossyShader.setVecUniform("LightPos", 1.0, 0.5, 0.35);
+            //    glossyShader.setFloatUniform("Roughness", 0.5);
+            //    glossyShader.setFloatUniform("Sharpness", 0.0);
+            //    glossyShader.setVecUniform("SpecularColour", 0.0, 1.0, 1.0);
+            //    glossyShader.setFloatUniform("SpecularIntensity", 0.5);
+            //    /*
+            //    // draw
+            //    GLGraphics renderer = (GLGraphics)g;
+            //    // renderer.ambient(0, 0, 250);
+            //    // renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
+            //    // renderer.pointLight(255, 255, 255, 100, 100, 100);
+            //    
+            //    cam.dolly(dollyStep);
+            //    cam.feed();
+            //    cloud.updateAndDraw();
+            //    renderer.translate(mouseX, mouseY, 0);
+            //    renderer.sphere(100);
+            //    */
+            //    pushMatrix();
+            //    translate(0, 0, 500);
+            //    scoreboard.draw();
+            //    popMatrix();
+            //glossyShader.stop();
+                
+        
+        pushMatrix();
+        translate(0, 0, 250);
+        scoreboard.draw();
+        popMatrix();
     }  
         
     // Statusanzeigen mit FPS, Anzahl der Partikel
@@ -228,7 +291,12 @@ public void keyPressed () {
     if (key == 's') applyShaders = !applyShaders;
     if (key == ' ') stt.begin();
     if (key == 'f') println(frameRate);
-    if (key == 'e') cloud.addWord("Essen");
+    if (key == 'e') {
+        transcribe("Essen", 0.8, STT.SUCCESS);
+    }
+    if (key == 'z') {
+        transcribe("Zahnarzt", 0.8, STT.SUCCESS);
+    }
 } 
 
 public void keyReleased () {
@@ -238,7 +306,9 @@ public void keyReleased () {
 public void transcribe (String word, float confidence, int status) {
     switch (status) {
         case STT.SUCCESS:
-            cloud.addWord(word);  
+            cloud.addWord(word);
+            nGramGetter.getNGram(word);
+            println("Getting ngram: " + word);
             break;
         case STT.RECORDING:
             cloud.reactOnRecord();
@@ -247,6 +317,12 @@ public void transcribe (String word, float confidence, int status) {
             cloud.reactOnError();
             break;
     }
+}
+
+void nGramFound (NGram ngram)
+{
+    println("Found ngram: " + ngram.word);
+    scoreboard.add(ngram); 
 }
 
 void oscEvent(OscMessage theOscMessage) {
