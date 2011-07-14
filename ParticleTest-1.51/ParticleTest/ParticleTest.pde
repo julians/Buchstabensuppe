@@ -79,6 +79,10 @@ public void setup()
     // Grafik
     if (dome) {
         size(1920, 1920, GLConstants.GLGRAPHICS);
+        Properties systemSettings = System.getProperties();
+        systemSettings.put("http.proxyHost", "192.168.10.100");
+        systemSettings.put("http.proxyPort", "8080");
+        System.setProperties(systemSettings);
     } else {
         size(800, 800, GLConstants.GLGRAPHICS);   
     }
@@ -234,7 +238,7 @@ public void draw() {
             //    renderer.sphere(100);
             //    */
             //    pushMatrix();
-            //    translate(0, 0, 500);
+            //    translate(0, 0, 250);
             //    scoreboard.draw();
             //    popMatrix();
             //glossyShader.stop();
@@ -309,7 +313,7 @@ public void transcribe (String word, float confidence, int status) {
         case STT.SUCCESS:
             cloud.addWord(word);
             // nGramGetter.getNGram(word);
-            println("Getting ngram: " + word);
+            //println("Getting ngram: " + word);
             break;
         case STT.RECORDING:
             cloud.reactOnRecord();
@@ -327,6 +331,10 @@ void nGramFound (NGram ngram)
 }
 
 void oscEvent(OscMessage theOscMessage) {
+    println("bububu");
+    println(theOscMessage.addrPattern());
+    println(theOscMessage.addrPattern() == "arduino");
+    println(theOscMessage.addrPattern().equals("arduino"));
     if (theOscMessage.addrPattern() == "status") {
         transcribe(theOscMessage.get(0).stringValue(), theOscMessage.get(1).floatValue(), theOscMessage.get(2).intValue());        
     } else if (theOscMessage.addrPattern() == "ngram") {
@@ -373,8 +381,15 @@ void oscEvent(OscMessage theOscMessage) {
         else if (theOscMessage.addrPattern() == "/mrmr/accelerometer/8/Aaaqw") {
             light.y = value;
         }
-    } else if (theOscMessage.addrPattern() == "arduino") {
-        if (theOscMessage.get(0).intValue() == 0) stt.end(); else stt.begin();
+    } else if (theOscMessage.addrPattern().equals("arduino")) {
+        println("huh");
+        if (theOscMessage.get(0).intValue() == 0) {
+            println("ende");
+            stt.end();
+        } else {
+            println("start");
+            stt.begin();
+        }
     }
 }
 
