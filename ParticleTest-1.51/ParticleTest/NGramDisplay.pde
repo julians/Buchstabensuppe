@@ -5,7 +5,7 @@ public class NGramDisplay
     private float colour;
     private float opacity = 0;
     public boolean alive = true;
-    public float thickness = 5;
+    public float thickness = 9;
     private float scoreboardMaxValue = 0;
     private QVector2D[] pTop;
     private QVector2D[] pBottom;

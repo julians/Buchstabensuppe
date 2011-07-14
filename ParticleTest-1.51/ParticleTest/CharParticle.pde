@@ -21,7 +21,7 @@ class CharParticle extends Particle
     RMesh m1;
     RPoint[][] pnts;
     RShape shp;
-    float scale = 0.25;
+    float scale = 0.5;
     
     Ani slowSpin;
     
