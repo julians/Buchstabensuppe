@@ -197,7 +197,7 @@ public class CharCloud extends ParticleSystem
             glmodel.endUpdateNormals();
              
             glmodel.initColors();
-            glmodel.setColors(255);
+            glmodel.setColors(255, 0, 0);
             modelCache.put(c, glmodel);
             return glmodel; 
         }

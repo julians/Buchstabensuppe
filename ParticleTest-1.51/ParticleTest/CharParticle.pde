@@ -137,7 +137,8 @@ class CharParticle extends Particle
                     renderer.rotateX(a);
                 }
                 renderer.translate(w / 2, 0, 0);
-                renderer.fill(0);
+                renderer.fill(255, 0, 0);
+                renderer.tint(255, 0, 0);
                 renderer.rotateY(ry);             
                 renderer.scale(scale);
                 renderer.translate(-w / 2, 0, 0);
@@ -166,7 +167,7 @@ class CharParticle extends Particle
         // }
         glmodel.endUpdateVertices(); 
         glmodel.initColors();
-        glmodel.setColors(255);
+        glmodel.setColors(255, 0, 0);
     }
     private void calcWidth () {
         for (int i = 0; i < pnts.length; i++) {

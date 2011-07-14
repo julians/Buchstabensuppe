@@ -51,7 +51,7 @@ PGraphicsOpenGL pgl;
 PVector light;
 RFont font;
 Slider2D s;
-String[] textureNames = {"+x.jpg", "-x.jpg", "+y.jpg", "-y.jpg", "+z.jpg", "-z.jpg"};
+String[] textureNames = {"+x.png", "-x.png", "+y.png", "-y.png", "+z.png", "-z.png"};
 STT stt;
 
 float refractionIndex = 1.0;
@@ -197,11 +197,10 @@ public void draw() {
     // Partikelsystem
     if (showParticles) {
        //lights();
-       // CubeShader
        cubeshader.start();
            cubeshader.setFloatUniform("RefractionIndex", refractionIndex);    
-           cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
-           cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
+           cubeshader.setVecUniform("SpecularColour", 0.9, 0.9, 1.0);
+           cubeshader.setVecUniform("LightPos", 0.5, 0.5, 1.0);
            cubeshader.setFloatUniform("Roughness", 0.5);
            cubeshader.setFloatUniform("SpecularIntensity", 1.0);
            
