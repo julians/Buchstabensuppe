@@ -83,11 +83,7 @@ public class Word extends Particle
                     ForceField f = forces.get(i);
                     QVector2D v = new QVector2D(0, -1);
                     if (label) {
-                        println("----");
-                        println(this.ngramDisplay.getLastMagnitude());
-                        println(width/2*0.5);
                         v.mult(this.ngramDisplay.getLastMagnitude());
-                        println(f.position);
                     } else {
                         v.mult(width/2*0.5);
                     }
