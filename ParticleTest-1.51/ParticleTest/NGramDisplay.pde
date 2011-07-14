@@ -20,11 +20,11 @@ public class NGramDisplay
         this.colour = map(this.ngram.getFirstOccurance(), 1500, 2008, 0, 360);
         this.calculatePoints();
         this.z = z;
-        Ani.to(this, 3, "opacity", 255);
+        Ani.to(this, 4.5, 2.5, "opacity", 255, Ani.EXPO_IN);
     }
     public void kill()
     {
-        Ani.to(this, 1.5, "opacity", 0, Ani.getDefaultEasing(), "onEnd:onFadeOut");
+        Ani.to(this, 1.5, "opacity", 0, Ani.EXPO_OUT, "onEnd:onFadeOut");
         this.alive = false;
     }
     public void draw()
@@ -32,9 +32,8 @@ public class NGramDisplay
         
         pushMatrix();
         translate(0, 0, -this.z*this.thickness);
-        float m = this.sb.getMaxValue();
-        if (m != this.scoreboardMaxValue) {
-            this.scoreboardMaxValue = m;
+        if (this.sb.getMaxValue() != this.scoreboardMaxValue) {
+            this.scoreboardMaxValue = this.sb.getMaxValue();
             this.calculatePoints();
         }
         noStroke();
@@ -125,14 +124,14 @@ public class NGramDisplay
             } else {
                 // Über die folgenden Variablennamen könnte man bei Gelegenheit noch mal nachdenken.
                 QVector2D hui = displace(pBottom[i], pBottom[i+1]);
-                float p = (hui.mag() - thickness) / hui.mag();
+                float p = (hui.mag() - this.thickness) / hui.mag();
                 QVector2D v1 = pBottom[i].get();
                 QVector2D v2 = pBottom[i+1].get();
                 v1.mult(p);
                 v2.mult(p);
 
                 QVector2D hui2 = displace(pBottom[i], pBottom[i-1]);
-                float p2 = (hui2.mag() - thickness) / hui2.mag();
+                float p2 = (hui2.mag() - this.thickness) / hui2.mag();
                 QVector2D v12 = pBottom[i].get();
                 QVector2D v22 = pBottom[i-1].get();
                 v12.mult(p2);
