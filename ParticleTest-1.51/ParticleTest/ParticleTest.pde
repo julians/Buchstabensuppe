@@ -54,6 +54,8 @@ Slider2D s;
 String[] textureNames = {"+x.jpg", "-x.jpg", "+y.jpg", "-y.jpg", "+z.jpg", "-z.jpg"};
 STT stt;
 
+float refractionIndex = 1.0;
+
 boolean applyShaders = false;
 boolean dome = false;
 boolean mic = true;
@@ -192,7 +194,7 @@ public void draw() {
        //lights();
        // CubeShader
        cubeshader.start();
-           cubeshader.setFloatUniform("RefractionIndex", 0.5);    
+           cubeshader.setFloatUniform("RefractionIndex", refractionIndex);    
            cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
            cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
            cubeshader.setFloatUniform("Roughness", 0.5);
@@ -297,6 +299,8 @@ public void keyPressed () {
     if (key == 'z') {
         transcribe("Zahnarzt", 0.8, STT.SUCCESS);
     }
+    
+    if (key == 'r') refractionIndex = random(1.0);
 } 
 
 public void keyReleased () {
@@ -312,6 +316,9 @@ public void transcribe (String word, float confidence, int status) {
             break;
         case STT.RECORDING:
             cloud.reactOnRecord();
+            if (refractionIndex == 1) Ani.to(this, 2, "refractionIndex", 0, Ani.BOUNCE_IN_OUT); 
+            else Ani.to(this, 2, "refractionIndex", 1, Ani.BOUNCE_IN_OUT); 
+            
             break;
         case STT.ERROR:
             cloud.reactOnError();

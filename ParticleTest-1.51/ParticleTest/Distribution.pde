@@ -28,6 +28,12 @@ public static class Distribution
     final static float Y = 0.04;
     final static float X = 0.03;
     final static float Q = 0.02;
+    // fake
+    final static float AE = 0.02;
+    final static float OE = 0.02;
+    final static float UE = 0.02;
+    final static float SS = 1.13;
+        
     
     static HashMap<String, Float> distribution;
     static boolean ready = false;
@@ -66,6 +72,10 @@ public static class Distribution
             distribution.put("Y", 0.04);
             distribution.put("X", 0.03);
             distribution.put("Q", 0.02);
+            distribution.put("AE", 0.02);
+            distribution.put("OE", 0.02);
+            distribution.put("UE", 0.02);
+            distribution.put("SS", 1.13);            
         }
         ready = true;
         return distribution;

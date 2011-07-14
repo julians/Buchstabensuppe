@@ -125,6 +125,5 @@ class ForceField extends Particle
     void die () 
     {
 
-    }
-    
+    }   
 }
