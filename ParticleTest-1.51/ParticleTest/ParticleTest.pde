@@ -315,7 +315,7 @@ public void keyReleased () {
 public void transcribe (String word, float confidence, int status) {
     switch (status) {
         case STT.SUCCESS:
-            cloud.addWord(word);
+            cloud.addWord(word.replaceAll("ß", "ss"));
             // nGramGetter.getNGram(word);
             //println("Getting ngram: " + word);
             break;
