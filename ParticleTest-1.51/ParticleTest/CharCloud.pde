@@ -6,16 +6,14 @@ public class CharCloud extends ParticleSystem
     HashMap<String, GLModel> modelCache;
     int mode = CharParticle.OBJMODEL;
     int maxWords = 6;
+    Scoreboard scoreboard;
     
     OBJModel model;
     GLModel glmodel;
     
-    public CharCloud (PApplet p5) {
-        this(p5, -1);
-    }
-    
-    public CharCloud (PApplet p5, int max) {
+    public CharCloud (PApplet p5, Scoreboard scoreboard, int max) {
         super(p5, max);
+        this.scoreboard = scoreboard;
         words = new HashMap<String, Word>();
         modelCache = new HashMap<String, GLModel>(26);
         init();
@@ -55,11 +53,13 @@ public class CharCloud extends ParticleSystem
         Word word = new Word(s, characters, pos, vel);
         words.put(s, word);
         addParticle(word).setLifeSpan(-1);
+        nGramGetter.getNGram(s);
     }
     public void removeWord (String s) {
         Word word = words.get(s);
         word.dissolve();
         words.remove(s);
+        scoreboard.remove(s);
     }
     void updateAndDraw() 
     {
