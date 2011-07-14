@@ -6,11 +6,6 @@ class ForceField extends Particle
     boolean visible;
     ArrayList<Particle> particles;
     
-    ForceField () 
-    {
-        super();
-    }
-    
     ForceField (PVector pos) 
     {
         this(pos, new PVector(0, 0, 0), 0, 0, 2);
@@ -27,7 +22,7 @@ class ForceField extends Particle
     }
     ForceField (PVector pos, PVector vel, float radius, float strength, float ramp) 
     {
-        this.init(pos, vel);
+        super(pos, vel);
         this.radius = radius;
         this.strength = strength;
         this.ramp = ramp;
@@ -46,32 +41,52 @@ class ForceField extends Particle
         particles.remove(p);
     }
     void apply () {
-        Particle p;
-        PVector delta;
+        // Particle p;
+        // PVector delta;
+        // for (int i = 0; i < particles.size(); i++) {
+        //     p = particles.get(i);
+        //     delta = new PVector(this.position.x, this.position.y, this.position.z);
+        //     delta.sub(p.position);
+        //     float d = delta.mag();
+        //     if (d > 100 && d < radius) {
+        //         // calculate force
+        //         float s = pow(d / radius, 1 / ramp);
+        //         float f = s * strength * (1 / (s + 1) + ((s - 3) / 4)) / d;
+        //         delta.mult(f);
+        //         p.velocity.add(delta);
+        //     }
+        // }
+        
         for (int i = 0; i < particles.size(); i++) {
+            Particle p;
+            PVector delta;
             p = particles.get(i);
             delta = new PVector(this.position.x, this.position.y, this.position.z);
             delta.sub(p.position);
             float d = delta.mag();
-            if (d > 0 && d < radius) {
-                // calculate force
-                float s = pow(d / radius, 1 / ramp);
-                float f = s * strength * (1 / (s + 1) + ((s - 3) / 4)) / d;
-                delta.mult(f);
-                p.velocity.add(delta);
+            float sign = strength / strength;
+            if (sign == 1) {
+                // attract
+                delta.mult(0.1);
+                p.velocity.set(delta);
+            } else {
+                // avoid
             }
         }
     }
     void draw () 
     {
-        noFill();
-        stroke(255, 50);
-        // sphereDetail(10);
-        pushMatrix();
-            translate(position.x, position.y, position.z);
-            sphere(radius);
-            // ellipse(0, 0, radius, radius);
-        popMatrix();
+        if (visible) {
+            noFill();
+            stroke(255, 50);
+            // sphereDetail(10);
+            pushMatrix();
+                translate(position.x, position.y, position.z);
+                sphere(radius);
+                // ellipse(0, 0, radius, radius);
+            popMatrix();            
+        }
+
     }
     void draw (GLGraphicsOffScreen canvas) 
     {
@@ -109,7 +124,7 @@ class ForceField extends Particle
     }
     void die () 
     {
-        println("Force can’t die!");
+
     }
     
 }

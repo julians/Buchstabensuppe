@@ -9,6 +9,7 @@ class Particle
     float age;
     float alpha;
     float mass;
+    float maxSpeed = 5;
     float progress;
     float size;
     float span;
@@ -18,18 +19,17 @@ class Particle
     PVector position;
     PVector velocity;
     float foo;
-
-    
-    public Particle () 
-    {
-        this.forces = new ArrayList<ForceField>();
-    }
     
     public Particle (PVector pos, PVector vel) {
-        this.init(pos, vel);
+        this(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
     }
-    
-    public void init(float x, float y, float z, float vx, float vy, float vz) 
+    public Particle (float x, float y, float z) {
+        this(x, y, z, 0, 0, 0);
+    } 
+    public Particle (PVector pos) {
+        this(pos, new PVector(0, 0, 0));
+    }
+    public Particle (float x, float y, float z, float vx, float vy, float vz) 
     {
         this.position = new PVector(x, y, z);
         this.updatePosition();
@@ -43,12 +43,7 @@ class Particle
         this.behaviors = new ArrayList<Behavior>();
         this.progress = 0;
         this.useForces = true;
-        this.useTarget = false;
-        this.target = new PVector();
-    }
-    public void init (PVector pos, PVector vel) 
-    {
-        this.init(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
+        this.forces = new ArrayList<ForceField>();
     }
     public void update () 
     {
@@ -56,26 +51,22 @@ class Particle
         progress = age / span;
         if (age > span && span != -1) die();
         
-        if (useTarget) {
-            PVector dir = PVector.sub(target, position);
-            dir.mult(0.05);
-            velocity.set(dir);
-        }
         if (!ani) {
             // update position
             position.add(velocity);
 
-            // apply behaviors
-            for (int i = 0; i < behaviors.size(); i++) behaviors.get(i).apply(this);
-
             // update x, y, z to fit vectors
             updatePosition();
             updateVelocity();
+            
+            // apply behaviors
+            for (int i = 0; i < behaviors.size(); i++) behaviors.get(i).apply(this);
 
             if (useForces) {
                 for (int i = 0; i < forces.size(); i++) {
                     ForceField f = forces.get(i);
-                    f.setPosition(this.position);
+                    f.update();
+                    f.setVelocity(this.velocity);
                     f.apply();
                 }   
             }
@@ -86,6 +77,14 @@ class Particle
         alive = false;
         forces.clear();
     }
+    public void draw() {
+        // override method to display the particle
+    }
+    public void drawForces() {
+        for (int i = 0; i < forces.size(); i++) {
+            forces.get(i).draw();
+        }
+    }
     Particle randomizeVelocity (float range) {
         return setVelocity(random(-range, range), random(-range, range), random(-range, range));
     }
@@ -95,10 +94,6 @@ class Particle
     public void addVelocity (PVector v) {
         velocity.add(v);
         updateVelocity();
-    }
-    public void tweenTo (PVector target) {
-        this.target = target;
-        this.useTarget = true;
     }
     public void updatePosition () {
         x = position.x;
@@ -123,6 +118,14 @@ class Particle
     Particle setVelocity (float vx, float vy, float vz) 
     {
         velocity.set(vx, vy, vz);
+        velocity.limit(maxSpeed);
+        updateVelocity();
+        return this;
+    }
+    Particle setVelocity (PVector vel) 
+    {
+        velocity.set(vel);
+        velocity.limit(maxSpeed);
         updateVelocity();
         return this;
     }

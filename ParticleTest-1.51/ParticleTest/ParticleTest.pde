@@ -16,8 +16,10 @@ import java.nio.IntBuffer;
 import javax.media.opengl.*;
 import netP5.*;
 import oscP5.*;
+
 import processing.opengl.*;
 import de.looksgood.ani.*;
+
 
 AudioInput microphone;
 AudioPlayer sample;
@@ -63,7 +65,7 @@ boolean showTimeline = false;
 float exposure, decay, density, weight;
 float fluidSize = 2;
 float dollyStep = 0;
-int maxParticles = 200;
+int maxParticles = 500;
 
 Scoreboard scoreboard;
 ThreadedNGramGetter nGramGetter;
@@ -107,7 +109,9 @@ public void setup()
     light = new PVector(0.5, 0.5);
     
     // Zweites Fenster für die Slider in 2D
-    controlFrame = new PFrame(this);
+    // controlFrame = new PFrame(this);
+    // Font für Statusanzeige
+    // controlWindow.textFont(createFont("Courier", 12));
     
     // STT
     stt = new STT(this, false);
@@ -118,9 +122,6 @@ public void setup()
     // Font für geomerative
     RG.init(this);
     font = new RFont("UbuntuTitling-Bold.ttf", 32, RFont.CENTER);
-    
-    // Font für Statusanzeige
-    controlWindow.textFont(createFont("Courier", 12));
     
     // Minim
     initMinim();
@@ -184,72 +185,28 @@ public void setup()
 /////////////////////////////////////////////////
 
 public void draw() {
-    // background(65, 95, 170);   
     background(0);
-    
-    // // OpenGL Motion Blur
-    // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
-    // GL gl = pgl.beginGL();
-    // gl.glEnable( GL.GL_BLEND );
-    // 
-    // fadeToColor(gl, 0, 0, 0, 0.05);
-    // 
-    // gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE);
-    // gl.glDisable(GL.GL_BLEND);
-    // pgl.endGL();
     
     // Partikelsystem
     if (showParticles) {
-        if (applyShaders) {
-            // Postprocessing Filter, der so tut als wenn Licht hinter den Buchstaben wäre und diese überstrahlt
-            canvas.beginDraw();
-                // Die alten Pixel durch transparente ersetzen, sodass der Hintergrund sichtbar bleibt
-                cubeshader.start();
-                    canvas.clear(0);
-                    canvas.background(0);
-                    
-                    // Lichter
-                    ambient(0, 0, 250);
-                    directionalLight(175, 189, 255, 0.5, 0.5, 1);
-                    pointLight(255, 255, 255, cam.position()[0], cam.position()[1], cam.position()[2]);
-                    // Kamera
-                    cam.dolly(dollyStep);
-                    cam.feed();
-                        
-                    // Partikelsystem zeichnen
-                    cloud.updateAndDraw(canvas);
-
-                cubeshader.stop();
-            canvas.endDraw();
-
-            vertexShader.start();
-                vertexShader.setFloatUniform("exposure", exposure);
-                vertexShader.setFloatUniform("decay", decay);
-                vertexShader.setFloatUniform("density", density);
-                vertexShader.setFloatUniform("weight", weight);
-                vertexShader.setVecUniform("lightPositionOnScreen", light.x, light.y);
-                image(canvas.getTexture(), 0, 0, width, height);
-            vertexShader.stop();
-            
-        } else {
-            //lights();
-            // CubeShader
-            cubeshader.start();
-                cubeshader.setFloatUniform("RefractionIndex", 0.5);    
-                cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
-                cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
-                cubeshader.setFloatUniform("Roughness", 0.5);
-                cubeshader.setFloatUniform("SpecularIntensity", 1.0);
-                
-                GLGraphics renderer = (GLGraphics)g;
-                //renderer.ambient(0, 0, 250);
-                //renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
-                // renderer.pointLight(255, 255, 255, 100, 100, 100);
-                
-                cam.dolly(dollyStep);
-                cam.feed();
-                cloud.updateAndDraw();
-            cubeshader.stop();
+       //lights();
+       // CubeShader
+       cubeshader.start();
+           cubeshader.setFloatUniform("RefractionIndex", 0.5);    
+           cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
+           cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
+           cubeshader.setFloatUniform("Roughness", 0.5);
+           cubeshader.setFloatUniform("SpecularIntensity", 1.0);
+           
+           GLGraphics renderer = (GLGraphics)g;
+           //renderer.ambient(0, 0, 250);
+           //renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
+           // renderer.pointLight(255, 255, 255, 100, 100, 100);
+           
+           cam.dolly(dollyStep);
+           cam.feed();
+           cloud.updateAndDraw();
+       cubeshader.stop();
             
             // Glossy
             //glossyShader.start();
@@ -281,7 +238,7 @@ public void draw() {
             //    popMatrix();
             //glossyShader.stop();
                 
-        }
+        
         pushMatrix();
         translate(0, 0, 250);
         scoreboard.draw();
@@ -293,58 +250,6 @@ public void draw() {
 }
 
 /////////////////////////////////////////////////
-
-// Wird automatisch vom Partikelsystem aufgerufen
-
-public void drawParticle (Particle p) {
-    // In die Textur zeichnen wenn Shader aktiviert sind
-    if(applyShaders) {
-        canvas.fill(255 - p.progress * 255);
-        if (p instanceof CharParticle) {
-            canvas.fill(255);
-            canvas.noStroke();
-            // canvas.fill(255, 100, 0);
-            // Drehen
-            float angle = atan2(p.y - height / 2, p.x - width / 2);
-            canvas.pushMatrix();
-                canvas.translate(p.x, p.y, p.z);
-                // canvas.rotate(angle);
-                // canvas.rotate(-HALF_PI);
-                ((CharParticle) p).draw(canvas); 
-            canvas.popMatrix(); 
-        } else if (p instanceof Word) {
-            println("updating word");
-            ((Word) p).update();
-        }
-        else {
-            canvas.beginShape(POINTS);
-            canvas.stroke(255);
-            canvas.vertex(p.x, p.y, p.z);
-            canvas.endShape(CLOSE);
-        }
-    // Ganz normal zeichnen
-    } else {
-        fill(255 - p.progress * 255);
-        noStroke();
-        if (p instanceof CharParticle) {
-            fill(255);
-            pushMatrix();
-                translate(p.x, p.y, p.z);
-                if (!((CharParticle)p).used) {
-                    float angle = atan2(p.y - height / 2, p.x - width / 2);
-                    rotate(angle);
-                    rotate(-HALF_PI);
-                    ((CharParticle) p).draw(); 
-                }
-            popMatrix(); 
-        } else if (p instanceof Word) {
-            ((Word) p).update();
-        } else {
-            stroke(255 - p.progress * 255);
-            point(p.x, p.y);
-        }
-    }
-}
 
 public void debug () {
     stroke(255);
@@ -467,6 +372,8 @@ void oscEvent(OscMessage theOscMessage) {
         else if (theOscMessage.addrPattern() == "/mrmr/accelerometer/8/Aaaqw") {
             light.y = value;
         }
+    } else if (theOscMessage.addrPattern() == "arduino") {
+        if (theOscMessage.get(0).intValue() == 0) stt.end(); else stt.begin();
     }
 }
 

@@ -1,63 +1,40 @@
-/*
-// This is a basic example to demonstrate how the Speech-To-Text Library 
-// can be used. See www.getflourish.com/sst/ for more information on
-// available settings.
-//
-// Florian Schulz 2011, www.getflourish.com
-*/
-
-import com.getflourish.stt.*;
+// Wartet auf Arduino Eingabe und leitet den Spaß weiter
 
 import oscP5.*;
 import netP5.*;
+import processing.serial.*;
   
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 
-ThreadedNGramGetter nGramGetter;
-
-STT stt;
-String result;
+Serial myPort;
+int pusher = 0;
+int lastState = 0;
+boolean arduino = false;
 
 void setup ()
 {
     size(600, 200);
-    // Init STT automatically starts listening, files are stored as history
-    stt = new STT(this, false);
-    stt.enableDebug();
-    stt.setLanguage("de"); 
-    
-    nGramGetter = new ThreadedNGramGetter(this);
-    
+
     oscP5 = new OscP5(this,12001);
     myRemoteLocation = new NetAddress("192.168.10.101",12000);
-
-    // Some text to display the result
-    textFont(createFont("Arial", 24));
-    result = "Say something!";
+    
+    String portName = Serial.list()[0];
+    myPort = new Serial(this, portName, 9600);        
 }
 
 void draw ()
 {
-    background(0);
-    text(result, mouseX, mouseY);
+    background(255 * lastState);
+
+    if (myPort.available() > 0) pusher = myPort.read();
+    if (pusher != lastState) send();
 }
 
-void nGramFound (NGram ngram)
-{
-    if (ngram != null) {
-        println("huhu, ngram!");
-        //println(ngram.word);
-    
-        OscMessage myMessage = new OscMessage(ngram.word);
-        myMessage.add(ngram.getFirstOccurance()); /* add an int to the osc message */
-        oscP5.send(myMessage, myRemoteLocation);
-    }
+void send () {
+    OscMessage myMessage = new OscMessage("arduino");
+    myMessage.add(pusher);
+    oscP5.send(myMessage, myRemoteLocation);
 }
 
-// Method is called if transcription was successfull 
-void transcribe (String word, float confidence) 
-{
-    println(word);
-    nGramGetter.getNGram(word);
-}
+
