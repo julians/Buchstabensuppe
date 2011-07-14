@@ -77,8 +77,12 @@ public class CharCloud extends ParticleSystem
     void updateAndDraw() 
     {
         for (int i = 0; i < particles.size(); i++) {
-            Particle p = particles.get(i);
-            updateAndDrawParticle(p);
+            if (particles.get(i) instanceof CharParticle) {
+                CharParticle p = (CharParticle) particles.get(i);
+                if (!p.used) {
+                    updateAndDrawParticle(p);
+                }
+            }
         }
         for (int i = 0; i < forces.size(); i++) {
             ForceField f = forces.get(i);
@@ -92,6 +96,17 @@ public class CharCloud extends ParticleSystem
             Map.Entry pairs = (Map.Entry) it.next();
             //println(((Word) pairs.getValue()).z);
             if (((Word) pairs.getValue()).z < 100) removeWord((String) pairs.getKey());
+        }
+    }
+    void drawWords () {
+        for (int i = 0; i < particles.size(); i++) {
+            if (particles.get(i) instanceof CharParticle) {
+                CharParticle p = (CharParticle) particles.get(i);
+                if (p.used) {
+                    updateAndDrawParticle(p);
+                    println("used");
+                }
+            }
         }
     }
     

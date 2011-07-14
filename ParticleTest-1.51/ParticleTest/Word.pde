@@ -41,6 +41,7 @@ public class Word extends Particle
         PVector offset = new PVector(x, y, z);
         for (int i = 0; i < characters.length; i++) {
             CharParticle p = characters[i];
+            p.used = true;
             offset.add(p.w, 0, 0);
             ForceField attractor = new ForceField(offset, this.velocity, 10, 100);
             // attractor.show();
