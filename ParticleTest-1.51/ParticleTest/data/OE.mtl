@@ -5,7 +5,7 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd -s 0.563976 0.500571 1.0 -o 0.225855 0.297033 1.0 Ö.JPG 
+map_Kd -s 0.563976 0.770109 1.0 -o 0.225855 0.133895 1.0 Ö0000.jpg 
 
 newmtl Material - Vorderseite mit abgeflachten Kanten Ö
 Ka 0.117647 0.117647 0.117647
@@ -14,7 +14,7 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd -s 0.563976 0.500571 1.0 -o 0.225855 0.297033 1.0 Ö.JPG 
+map_Kd -s 0.563976 0.770109 1.0 -o 0.225855 0.133895 1.0 Ö0000.jpg 
 
 newmtl Material - Extrusion Ö
 Ka 0.117647 0.117647 0.117647
@@ -23,7 +23,7 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd Material - Extrusion Ö - Standardtextur.JPG 
+map_Kd Material - Extrusion Ö - Standardtextur0000.jpg 
 
 newmtl Material - Rückseite mit abgeflachten Kanten Ö
 Ka 0.117647 0.117647 0.117647
@@ -32,7 +32,7 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd -s 0.563976 0.500571 1.0 -o 0.225855 0.297033 1.0 Ö.JPG 
+map_Kd -s 0.563976 0.770109 1.0 -o 0.225855 0.133895 1.0 Ö0000.jpg 
 
 newmtl Material - Aufgeblasene Rückseite Ö
 Ka 0.117647 0.117647 0.117647
@@ -41,5 +41,5 @@ Ks 0.752941 0.752941 0.752941
 illum 1
 Ns 2.000000
 Tr 1.000000
-map_Kd -s 0.563976 0.500571 1.0 -o 0.225855 0.297033 1.0 Ö.JPG 
+map_Kd -s 0.563976 0.770109 1.0 -o 0.225855 0.133895 1.0 Ö0000.jpg 
 
