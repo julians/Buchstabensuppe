@@ -5,7 +5,8 @@ public class Word extends Particle
     int letterspacing = 0;
     PVector center = new PVector(width / 2, height / 2, 0);
     float rotation;
-    float z;
+    public float z;
+    boolean zAnimating = false;
         
     public Word (String word, CharParticle[] characters, PVector pos) {
         super(pos, new PVector(0, 0, 0));
@@ -35,6 +36,15 @@ public class Word extends Particle
             attractor.influence(p);
         }
     }
+    public void toFront ()
+    {
+        this.zAnimating = true;
+        Ani.to(this, 3, "z", 600, Ani.ELASTIC_OUT, "onEnd:broughtToFront");
+    }
+    public void broughtToFront (Ani ani)
+    {
+        this.zAnimating = false;
+    }
     public void update () 
     {
         age++;
@@ -59,17 +69,20 @@ public class Word extends Particle
                     v.mult(width/2*0.5);
                     v.rotate(i*-5+this.rotation);
                     f.update();
-                    //float angle = atan2(this.y - center.y, this.x - center.x);
-                    //float radius = PVector.sub(this.position, center).mag();
-                    //float x = center.x + sin(radians(angle)) * radius;
-                    //float y = center.y + cos(radians(angle)) * radius;
                     f.setPosition(new PVector(v.x+width/2, v.y+height/2, this.z));
-                    // f.setVelocity(this.velocity);
                     f.apply();
                 }   
             }
         }
         this.rotation += 0.1;
-        this.z -= 0.1;
+        if (!this.zAnimating) this.z -= 0.1;
+    }
+    public void dissolve () {
+        forces.clear();
+        for (int i = 0; i < characters.length; i++) {
+            CharParticle character = characters[i];
+            character.velocity.sub(random(-0.05, 0.05), random(-0.05, 0.05), random(0.05, 0.05));
+            character.updateVelocity();
+        }
     }
 }

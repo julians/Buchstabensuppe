@@ -5,6 +5,7 @@ public class CharCloud extends ParticleSystem
     int letterspacing = 0;
     HashMap<String, GLModel> modelCache;
     int mode = CharParticle.OBJMODEL;
+    int maxWords = 6;
     
     OBJModel model;
     GLModel glmodel;
@@ -21,6 +22,30 @@ public class CharCloud extends ParticleSystem
     }
     
     public void addWord (String s) {
+        println(s);
+        println(words.size());
+        if (words.containsKey(s)) {
+            Word word = words.get(s);
+            println(s + " exists, bring to front!");
+            word.toFront();
+            return;
+        }
+        if (words.size() >= maxWords) {
+            Iterator it = words.entrySet().iterator();
+            String oldestWord = "";
+            float maxZ = 0;
+            while (it.hasNext()) 
+            {
+                Map.Entry pairs = (Map.Entry) it.next();
+                Word v = (Word) pairs.getValue();
+                String k = (String) pairs.getKey();
+                if (v.z > maxZ) {
+                    maxZ = v.z;
+                    oldestWord = k;
+                }
+            }
+            removeWord(oldestWord);
+        }
         CharParticle[] characters = new CharParticle[s.length()];
         for (int i = 0; i < characters.length; i++) {
             characters[i] = getParticleForChar(s.charAt(i));
@@ -30,9 +55,32 @@ public class CharCloud extends ParticleSystem
         Word word = new Word(s, characters, pos, vel);
         words.put(s, word);
         addParticle(word).setLifeSpan(-1);
-        //word.addBehavior(new SpiralMovement(word));
     }
-    public void removeWord (String s) {} // auflösen oder so
+    public void removeWord (String s) {
+        Word word = words.get(s);
+        word.dissolve();
+        words.remove(s);
+    }
+    void updateAndDraw() 
+    {
+        for (int i = 0; i < particles.size(); i++) {
+            Particle p = particles.get(i);
+            updateAndDrawParticle(p);
+        }
+        for (int i = 0; i < forces.size(); i++) {
+            ForceField f = forces.get(i);
+            if (f.visible) f.draw();
+            f.apply();
+        }
+        
+        Iterator it = words.entrySet().iterator();
+        while (it.hasNext()) 
+        {
+            Map.Entry pairs = (Map.Entry) it.next();
+            //println(((Word) pairs.getValue()).z);
+            if (((Word) pairs.getValue()).z < 100) removeWord((String) pairs.getKey());
+        }
+    }
     
     // public ArrayList<String> getKeys () {}
     // public ArrayList<String> getValues () {}
