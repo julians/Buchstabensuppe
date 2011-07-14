@@ -165,7 +165,7 @@ public void setup()
     
     Ani.to(cam, 10.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
     
-    scoreboard = new Scoreboard(90, 0.5, 0.9);
+    scoreboard = new Scoreboard(90, 0.6, 0.9);
     words = new ArrayList();
     words.add("waschmittelwerbung");
     words.add("raumstation");

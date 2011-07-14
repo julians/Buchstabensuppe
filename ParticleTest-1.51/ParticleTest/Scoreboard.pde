@@ -23,7 +23,6 @@ class Scoreboard
     {
         this.ngrams.add(new NGramDisplay(this, ngram, this.ngrams.size()));
         this.calculateMaxValue();
-        println("Ngram added: " + ngram.word);
     }
     public void remove (String word)
     {
@@ -36,7 +35,7 @@ class Scoreboard
                 killed = true;
             }
         }
-        this.calculateMaxValue();
+        this.calculateMaxValue(true);
     }
     public void remove (NGramDisplay _ngramDisplay)
     {
@@ -49,6 +48,10 @@ class Scoreboard
     }
     private void calculateMaxValue ()
     {
+        this.calculateMaxValue(false);
+    }
+    private void calculateMaxValue (boolean removed)
+    {
         float old_maxValue = this.maxValue;
         this.maxValue = 0;
         
@@ -60,23 +63,47 @@ class Scoreboard
             }
         }
         if (this.maxValue != old_maxValue) {
-            Ani.to(this, 5, "currentScale", this.maxValue);
+            String animation = Ani.SINE_OUT;
+            float d = 15f;
+            if (removed) {
+                animation = Ani.CUBIC_OUT;
+                d = 10f;
+            }
+            Ani.to(this, d, "currentScale", this.maxValue, animation);
         }
     }
     public float getMaxValue ()
     {
-        return this.currentScale;
+        return this.currentScale > 0 ? this.currentScale : 1;
     }
     public void draw ()
     {
+        /*
+        noStroke();
+        fill(360, 0, 75);
+        beginShape(QUAD_STRIP);
+        vertex(0, 0, 0);
+        vertex(0, 0, 10);
+        vertex(0, this.h, 0);
+        vertex(0, this.h, 10);
+        vertex(this.w, this.h, 0);
+        vertex(this.w, this.h, 10);
+        vertex(this.w, this.h+10, 0);
+        vertex(this.w, this.h+10, 10);
+        vertex(-10, this.h+10, 0);
+        vertex(-10, this.h+10, 10);
+        vertex(-10, 0, 0);
+        vertex(-10, 0, 10);
+        endShape(CLOSE);
+        */
         pushMatrix();
         translate(width/2, height/2);
-        fill(360, 100, 50, 255);
         rotate(radians(this.rotation));
         for (int i = 0; i < this.ngrams.size(); i++) {
             NGramDisplay ngramDisplay = (NGramDisplay) this.ngrams.get(i);
             ngramDisplay.draw();
         }
         popMatrix();
+        this.rotation += 0.025;
     }
 }
