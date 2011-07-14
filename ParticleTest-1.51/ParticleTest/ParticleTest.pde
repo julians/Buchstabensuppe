@@ -128,8 +128,10 @@ public void setup()
     // Minim
     initMinim();
     
+    scoreboard = new Scoreboard(90, 0.6, 0.9);
+    
     // Partikelsystem erstellen
-    cloud = new CharCloud(this, maxParticles);
+    cloud = new CharCloud(this, scoreboard, maxParticles);
 
     // Shader stuff
     exposure = 1;
@@ -168,7 +170,6 @@ public void setup()
     
     Ani.to(cam, 10.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
     
-    scoreboard = new Scoreboard(90, 0.6, 0.9);
     words = new ArrayList();
     words.add("waschmittelwerbung");
     words.add("raumstation");
@@ -311,7 +312,7 @@ public void transcribe (String word, float confidence, int status) {
     switch (status) {
         case STT.SUCCESS:
             cloud.addWord(word);
-            nGramGetter.getNGram(word);
+            // nGramGetter.getNGram(word);
             println("Getting ngram: " + word);
             break;
         case STT.RECORDING:
