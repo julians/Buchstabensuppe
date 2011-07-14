@@ -148,6 +148,10 @@ public class CharCloud extends ParticleSystem
     }
     // returns the cached model for reuse with a new CharParticle
     GLModel getModelForChar(String c) {
+        if (c.equals("Ä") || c.equals("ä")) c = "AE";
+        if (c.equals("Ü") || c.equals("ü")) c = "UE";
+        if (c.equals("Ö") || c.equals("ö")) c = "OE";
+        if (c.equals("ß")) c = "SS";
         // I don’t know how to use char as key in a HashMap so I use fake Strings
         if (modelCache.containsKey(c)) {
             return modelCache.get(c);

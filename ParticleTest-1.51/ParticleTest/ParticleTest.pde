@@ -67,7 +67,7 @@ boolean showTimeline = false;
 float exposure, decay, density, weight;
 float fluidSize = 2;
 float dollyStep = 0;
-int maxParticles = 500;
+int maxParticles = 200;
 
 Scoreboard scoreboard;
 ThreadedNGramGetter nGramGetter;
@@ -295,7 +295,7 @@ public void keyPressed () {
     if (key == ' ') stt.begin();
     if (key == 'f') println(frameRate);
     if (key == 'e') {
-        transcribe("Essen", 0.8, STT.SUCCESS);
+        transcribe("ÄAÄAÄAÄES", 0.8, STT.SUCCESS);
     }
     if (key == 'z') {
         transcribe("Zahnarzt", 0.8, STT.SUCCESS);

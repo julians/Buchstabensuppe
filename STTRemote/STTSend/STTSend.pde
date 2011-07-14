@@ -17,7 +17,8 @@ void setup ()
     size(600, 200);
 
     oscP5 = new OscP5(this,12001);
-    myRemoteLocation = new NetAddress("192.168.10.101",12000);
+    // myRemoteLocation = new NetAddress("192.168.10.101",12000);
+    myRemoteLocation = new NetAddress("192.168.0.106", 12000);
     
     String portName = Serial.list()[0];
     myPort = new Serial(this, portName, 9600);        
@@ -28,10 +29,14 @@ void draw ()
     background(255 * lastState);
 
     if (myPort.available() > 0) pusher = myPort.read();
-    if (pusher != lastState) send();
+    if (pusher != lastState) {
+        send();
+        lastState = pusher;
+    }
 }
 
 void send () {
+    println("send");
     OscMessage myMessage = new OscMessage("arduino");
     myMessage.add(pusher);
     oscP5.send(myMessage, myRemoteLocation);

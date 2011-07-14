@@ -32,7 +32,6 @@ public static class Distribution
     final static float AE = 0.02;
     final static float OE = 0.02;
     final static float UE = 0.02;
-    final static float SS = 1.13;
         
     
     static HashMap<String, Float> distribution;
@@ -74,8 +73,7 @@ public static class Distribution
             distribution.put("Q", 0.02);
             distribution.put("AE", 0.02);
             distribution.put("OE", 0.02);
-            distribution.put("UE", 0.02);
-            distribution.put("SS", 1.13);            
+            distribution.put("UE", 0.02);           
         }
         ready = true;
         return distribution;
