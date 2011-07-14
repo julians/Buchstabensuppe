@@ -31,7 +31,7 @@ public class Word extends Particle
             CharParticle p = characters[i];
             offset.add(p.w, 0, 0);
             ForceField attractor = new ForceField(offset, this.velocity, 10, 100);
-            // attractor.show();
+            attractor.show();
             addForceField(attractor);
             attractor.influence(p);
         }

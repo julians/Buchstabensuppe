@@ -7,7 +7,7 @@ class CharParticle extends Particle
     boolean fxSpin = false;
     public boolean used = false;
     boolean use3DModel = true;
-    char character;
+    String character;
     float extrusion = 3;
     float maxSpin = 0.2;
     float rx, ry = 0;
@@ -34,14 +34,14 @@ class CharParticle extends Particle
     final static int HYBRID = 1;    
     final static int OBJMODEL = 2;
 
-    CharParticle (PApplet p, char c, int mode) {
+    CharParticle (PApplet p, String c, int mode) {
       super(new PVector(0, 0, 0));
       this.character = c;
       this.p = p;
       this.mode = mode;
       setup();
     }     
-    CharParticle (PApplet p, char c, GLModel model) {
+    CharParticle (PApplet p, String c, GLModel model) {
       super(new PVector(0, 0, 0));
       this.character = c;
       this.p = p;

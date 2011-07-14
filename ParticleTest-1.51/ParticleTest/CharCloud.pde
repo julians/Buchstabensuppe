@@ -46,8 +46,9 @@ public class CharCloud extends ParticleSystem
         }
         CharParticle[] characters = new CharParticle[s.length()];
         for (int i = 0; i < characters.length; i++) {
-            characters[i] = getParticleForChar(s.charAt(i));
+            characters[i] = getParticleForChar("" + s.charAt(i));
         }
+
         PVector pos = new PVector(random(width), random(height), random(400, 500));
         PVector vel = new PVector(0, 0, 0);
         Word word = new Word(s, characters, pos, vel);
@@ -96,12 +97,12 @@ public class CharCloud extends ParticleSystem
             Map.Entry pairs = (Map.Entry) it.next();
 
             // todo: Find a better solution for lower and upper case distribution
-            char c;
+            String c;
             for (int i = 0; i < 1 + (Float) pairs.getValue() * onePercent; i++) {
                 if ((int) random(2) == 0) {
-                    c = ((String) pairs.getKey()).charAt(0);
+                    c = ((String) pairs.getKey());
                 } else {
-                    c = (((String) pairs.getKey()).toLowerCase()).charAt(0); 
+                    c = (((String) pairs.getKey()).toLowerCase()); 
                 }
                 CharParticle p;
                 switch (mode) {
@@ -128,7 +129,7 @@ public class CharCloud extends ParticleSystem
     }
     public void reactOnError () { 
     }
-    CharParticle getParticleForChar(char c) {
+    CharParticle getParticleForChar(String c) {
         for (int i = 0; i < particles.size(); i++) {
             if (particles.get(i) instanceof CharParticle) {
                 CharParticle p = (CharParticle) particles.get(i);
@@ -146,13 +147,13 @@ public class CharCloud extends ParticleSystem
         return p;
     }
     // returns the cached model for reuse with a new CharParticle
-    GLModel getModelForChar(char c) {
+    GLModel getModelForChar(String c) {
         // I don’t know how to use char as key in a HashMap so I use fake Strings
-        if (modelCache.containsKey("" + c)) {
-            return modelCache.get("" + c);
+        if (modelCache.containsKey(c)) {
+            return modelCache.get(c);
         } else {
             // creates a new model
-            model = new OBJModel(p5, ("" + c).toUpperCase() + ".obj", "relative", TRIANGLES);
+            model = new OBJModel(p5, (c).toUpperCase() + ".obj", "relative", TRIANGLES);
             model.enableDebug();
 
             glmodel = new GLModel(p5, model.getFaceCount() * 3, TRIANGLES, GLModel.DYNAMIC);
@@ -193,7 +194,7 @@ public class CharCloud extends ParticleSystem
              
             glmodel.initColors();
             glmodel.setColors(255);
-            modelCache.put("" + c, glmodel);
+            modelCache.put(c, glmodel);
             return glmodel; 
         }
 
