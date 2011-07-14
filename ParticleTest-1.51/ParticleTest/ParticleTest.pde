@@ -298,12 +298,26 @@ public void keyPressed () {
     if (key == ' ') stt.begin();
     if (key == 'f') println(frameRate);
     if (key == 'e') {
-        transcribe("ÄAÄAÄAÄES", 0.8, STT.SUCCESS);
+        transcribe("Essen", 0.8, STT.SUCCESS);
+    }
+    if (key == 'u') {
+        transcribe("Studieren", 0.8, STT.SUCCESS);
+    }
+    if (key == 'i') {
+        transcribe("Ingenieur", 0.8, STT.SUCCESS);
+    }
+    if (key == 'o') {
+        transcribe("Ohnmacht", 0.8, STT.SUCCESS);
+    }
+    if (key == 't') {
+        transcribe("Teufel", 0.8, STT.SUCCESS);
     }
     if (key == 'z') {
         transcribe("Zahnarzt", 0.8, STT.SUCCESS);
     }
-    
+    if (key == 'ü') {
+        transcribe("Übel", 0.8, STT.SUCCESS);
+    }
     if (key == 'r') refractionIndex = random(1.0);
 } 
 

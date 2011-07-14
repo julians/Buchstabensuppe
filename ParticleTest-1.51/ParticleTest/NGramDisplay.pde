@@ -10,8 +10,10 @@ public class NGramDisplay
     private QVector2D[] pTop;
     private QVector2D[] pBottom;
     private float z;
+    CharCloud cc = null;
+    Word word;
     
-    public NGramDisplay (Scoreboard scoreboard, NGram ngram, float z)
+    public NGramDisplay (Scoreboard scoreboard, NGram ngram, float z, CharCloud cc)
     {
         this.sb = scoreboard;
         this.ngram = ngram;
@@ -20,11 +22,14 @@ public class NGramDisplay
         this.colour = map(this.ngram.getFirstOccurance(), 1500, 2008, 0, 360);
         this.calculatePoints();
         this.z = z;
+        this.cc = cc;
+        if (this.cc != null) this.word = cc.getLabel(this.sb, this);
         Ani.to(this, 4.5, 2.5, "opacity", 255, Ani.EXPO_IN);
     }
     public void kill()
     {
         Ani.to(this, 1.5, "opacity", 0, Ani.EXPO_OUT, "onEnd:onFadeOut");
+        if (this.word != null) this.word.dissolve();
         this.alive = false;
     }
     public void draw()
@@ -37,7 +42,7 @@ public class NGramDisplay
             this.calculatePoints();
         }
         noStroke();
-        fill(this.colour, 100, 50, this.opacity);
+        fill(this.colour, 25, 50, this.opacity);
         // Vorderseite
         beginShape();
         for (int i = 0; i < this.pBottom.length; i++) {
@@ -151,6 +156,10 @@ public class NGramDisplay
             this.pBottom[i].rotate(angle);
             this.pBottom[i].mult(radius);
         }
+    }
+    public float getLastMagnitude()
+    {
+        return map(this.ngram.decades[this.ngram.decades.length-1], 0, this.scoreboardMaxValue, width/2*this.sb.radiusBottom, width/2*this.sb.radiusTop); 
     }
     QVector2D displace (QVector2D a, QVector2D b)
     {

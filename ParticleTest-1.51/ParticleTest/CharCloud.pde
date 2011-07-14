@@ -14,6 +14,7 @@ public class CharCloud extends ParticleSystem
     public CharCloud (PApplet p5, Scoreboard scoreboard, int max) {
         super(p5, max);
         this.scoreboard = scoreboard;
+        // this.scoreboard.registerCharCloud(this);
         words = new HashMap<String, Word>();
         modelCache = new HashMap<String, GLModel>(26);
         init();
@@ -55,6 +56,17 @@ public class CharCloud extends ParticleSystem
         words.put(s, word);
         addParticle(word).setLifeSpan(-1);
         nGramGetter.getNGram(s);
+    }
+    public Word getLabel(Scoreboard scoreboard, NGramDisplay ngramDisplay)
+    {
+        CharParticle[] characters = new CharParticle[ngramDisplay.ngram.word.length()];
+        for (int i = 0; i < characters.length; i++) {
+            characters[i] = getParticleForChar("" + ngramDisplay.ngram.word.charAt(i));
+        }
+        Word word = new Word(ngramDisplay.ngram.word, characters, new PVector(0, 0, 0), new PVector(0, 0, 0));
+        word.makeLabel(scoreboard, ngramDisplay);
+        addParticle(word).setLifeSpan(-1);
+        return word;
     }
     public void removeWord (String s) {
         Word word = words.get(s);

@@ -8,6 +8,7 @@ class Scoreboard
     private float tweenDuration = 50f;
     public float rotation = 0;
     public float degreeSpan;
+    CharCloud cc = null;
     
     Scoreboard (float degreeSpan, float radiusTop, float radiusBottom)
     {
@@ -21,7 +22,7 @@ class Scoreboard
     }
     public void add (NGram ngram)
     {
-        this.ngrams.add(new NGramDisplay(this, ngram, this.ngrams.size()));
+        this.ngrams.add(new NGramDisplay(this, ngram, this.ngrams.size(), this.cc));
         this.calculateMaxValue();
     }
     public void remove (String word)
@@ -105,5 +106,9 @@ class Scoreboard
         }
         popMatrix();
         this.rotation += 0.025;
+    }
+    public void registerCharCloud (CharCloud cc)
+    {
+        this.cc = cc;
     }
 }

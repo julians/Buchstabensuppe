@@ -7,11 +7,16 @@ public class Word extends Particle
     float rotation;
     public float z;
     boolean zAnimating = false;
+    boolean label = false;
+    Scoreboard scoreboard;
+    NGramDisplay ngramDisplay;
+    float circleSpeed;
+    float zSpeed;
         
     public Word (String word, CharParticle[] characters, PVector pos) {
         super(pos, new PVector(0, 0, 0));
         this.word = word;
-        this.z = pos.z;
+        this.z = 600;
         this.rotation = random(-25, 25);
         this.characters = characters;
         init();
@@ -24,6 +29,13 @@ public class Word extends Particle
         this.rotation = random(-25, 25);
         init();
     }
+    public void makeLabel(Scoreboard scoreboard, NGramDisplay ngramDisplay)
+    {
+        this.label = true;
+        this.scoreboard = scoreboard;
+        this.ngramDisplay = ngramDisplay;
+        this.z = 100;
+    }
     public void init () {
         // Kräfte und so erzeugen
         PVector offset = new PVector(x, y, z);
@@ -35,6 +47,10 @@ public class Word extends Particle
             addForceField(attractor);
             attractor.influence(p);
         }
+        this.circleSpeed = random(1, 20);
+        this.zSpeed = random(1, 30);
+        Ani.to(this, 5, "circleSpeed", 0.1, Ani.EXPO_OUT);
+        Ani.to(this, 3, "zSpeed", 0.1, Ani.EXPO_OUT);
     }
     public void toFront ()
     {
@@ -54,19 +70,27 @@ public class Word extends Particle
         if (!ani) {
             // update position
             position.add(velocity);
-    
+
             // update x, y, z to fit vectors
             updatePosition();
             updateVelocity();
-            
+        
             // apply behaviors
             for (int i = 0; i < behaviors.size(); i++) behaviors.get(i).apply(this);
-    
+
             if (useForces) {
                 for (int i = 0; i < forces.size(); i++) {
                     ForceField f = forces.get(i);
                     QVector2D v = new QVector2D(0, -1);
-                    v.mult(width/2*0.5);
+                    if (label) {
+                        println("----");
+                        println(this.ngramDisplay.getLastMagnitude());
+                        println(width/2*0.5);
+                        v.mult(this.ngramDisplay.getLastMagnitude());
+                        println(f.position);
+                    } else {
+                        v.mult(width/2*0.5);
+                    }
                     v.rotate(i*-5+this.rotation);
                     f.update();
                     f.setPosition(new PVector(v.x+width/2, v.y+height/2, this.z));
@@ -74,8 +98,12 @@ public class Word extends Particle
                 }   
             }
         }
-        this.rotation += 0.1;
-        if (!this.zAnimating) this.z -= 0.1;
+        if (this.label) {
+            this.rotation = this.scoreboard.rotation+this.scoreboard.degreeSpan;
+        } else {
+            this.rotation += this.circleSpeed;
+            if (!this.zAnimating) this.z -= this.zSpeed;
+        }
     }
     public void dissolve () {
         forces.clear();
