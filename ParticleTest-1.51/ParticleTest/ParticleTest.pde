@@ -57,9 +57,8 @@ STT stt;
 float refractionIndex = 1.0;
 
 boolean applyShaders = false;
-boolean dome = false;
 boolean mic = true;
-boolean showDebug = true;
+boolean showDebug = false;
 boolean showFluid = false;
 boolean showParticles = true;
 boolean showTimeline = false;
@@ -74,6 +73,7 @@ ThreadedNGramGetter nGramGetter;
 ArrayList words;
 ArrayList words2;
 
+boolean dome = true;
 /////////////////////////////////////////////////
 
 public void setup() 
@@ -172,7 +172,8 @@ public void setup()
         gl.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.GL_RGBA, tex.width, tex.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, IntBuffer.wrap(pix));
     }
     
-    Ani.to(cam, 10.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
+    float camBlah = dome ? 1800 : 1000;
+    Ani.to(cam, 10.0, "theCameraZ", camBlah, Ani.CUBIC_IN_OUT);
     
     words = new ArrayList();
     words.add("waschmittelwerbung");
