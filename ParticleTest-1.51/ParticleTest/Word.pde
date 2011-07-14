@@ -29,6 +29,10 @@ public class Word extends Particle
         this.rotation = random(-25, 25);
         init();
     }
+    public void registerScoreboard (Scoreboard scoreboard)
+    {
+        this.scoreboard = scoreboard;
+    }
     public void makeLabel(Scoreboard scoreboard, NGramDisplay ngramDisplay)
     {
         this.label = true;
@@ -92,6 +96,7 @@ public class Word extends Particle
                     f.update();
                     f.setPosition(new PVector(v.x+width/2, v.y+height/2, this.z));
                     f.apply();
+                    //float colour = this.scoreboard.getColour(this.word);
                 }   
             }
         }
