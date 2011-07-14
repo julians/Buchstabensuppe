@@ -81,10 +81,10 @@ public void setup()
     // Grafik
     if (dome) {
         size(1920, 1920, GLConstants.GLGRAPHICS);
-        //Properties systemSettings = System.getProperties();
-        //systemSettings.put("http.proxyHost", "192.168.10.100");
-        //systemSettings.put("http.proxyPort", "8080");
-        //System.setProperties(systemSettings);
+        Properties systemSettings = System.getProperties();
+        systemSettings.put("http.proxyHost", "192.168.10.100");
+        systemSettings.put("http.proxyPort", "8080");
+        System.setProperties(systemSettings);
     } else {
         size(800, 800, GLConstants.GLGRAPHICS);   
     }
