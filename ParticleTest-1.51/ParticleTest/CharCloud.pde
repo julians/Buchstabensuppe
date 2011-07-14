@@ -25,11 +25,12 @@ public class CharCloud extends ParticleSystem
         for (int i = 0; i < characters.length; i++) {
             characters[i] = getParticleForChar(s.charAt(i));
         }
-        PVector pos = new PVector(width /2, height / 2, 0);
+        PVector pos = new PVector(random(width), random(height), random(-100, 300));
         PVector vel = new PVector(0, 0, 0);
         Word word = new Word(s, characters, pos, vel);
         words.put(s, word);
         addParticle(word).setLifeSpan(-1);
+        word.addBehavior(new SpiralMovement(word));
     }
     public void removeWord (String s) {} // auflösen oder so
     
@@ -68,9 +69,9 @@ public class CharCloud extends ParticleSystem
                     break;
                 }
                 addParticle(p, random(width), random(height), random(-500, 500)).randomizeVelocity(0.1).setLifeSpan(-1);
-                ForceField attraction = new ForceField(new PVector (0, 0, 0)).setRadius(p.getWidth()).setStrength(-1000);            
-                p.addForceField(attraction);
-                attraction.influence(this.getParticles());
+                // ForceField attraction = new ForceField(new PVector (0, 0, 0)).setRadius(p.getWidth()).setStrength(-1000);            
+                // p.addForceField(attraction);
+                // attraction.influence(this.getParticles());
                 // p.addBehavior(new BounceOffWalls(1000));
             } 
         }

@@ -9,6 +9,7 @@ class Particle
     float age;
     float alpha;
     float mass;
+    float maxSpeed = 5;
     float progress;
     float size;
     float span;
@@ -18,7 +19,6 @@ class Particle
     PVector position;
     PVector velocity;
     float foo;
-
     
     public Particle (PVector pos, PVector vel) {
         this(pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
@@ -43,8 +43,6 @@ class Particle
         this.behaviors = new ArrayList<Behavior>();
         this.progress = 0;
         this.useForces = true;
-        this.useTarget = false;
-        this.target = new PVector();
         this.forces = new ArrayList<ForceField>();
     }
     public void update () 
@@ -53,27 +51,22 @@ class Particle
         progress = age / span;
         if (age > span && span != -1) die();
         
-        if (useTarget) {
-            PVector dir = PVector.sub(target, position);
-            dir.mult(0.05);
-            velocity.set(dir);
-        }
         if (!ani) {
             // update position
             position.add(velocity);
 
-            // apply behaviors
-            for (int i = 0; i < behaviors.size(); i++) behaviors.get(i).apply(this);
-
             // update x, y, z to fit vectors
             updatePosition();
             updateVelocity();
+            
+            // apply behaviors
+            for (int i = 0; i < behaviors.size(); i++) behaviors.get(i).apply(this);
 
             if (useForces) {
                 for (int i = 0; i < forces.size(); i++) {
                     ForceField f = forces.get(i);
                     f.update();
-                    f.setVelocity(PVector.add(f.velocity, this.velocity));
+                    f.setVelocity(this.velocity);
                     f.apply();
                 }   
             }
@@ -102,10 +95,6 @@ class Particle
         velocity.add(v);
         updateVelocity();
     }
-    public void tweenTo (PVector target) {
-        this.target = target;
-        this.useTarget = true;
-    }
     public void updatePosition () {
         x = position.x;
         y = position.y;
@@ -129,12 +118,14 @@ class Particle
     Particle setVelocity (float vx, float vy, float vz) 
     {
         velocity.set(vx, vy, vz);
+        velocity.limit(maxSpeed);
         updateVelocity();
         return this;
     }
     Particle setVelocity (PVector vel) 
     {
         velocity.set(vel);
+        velocity.limit(maxSpeed);
         updateVelocity();
         return this;
     }

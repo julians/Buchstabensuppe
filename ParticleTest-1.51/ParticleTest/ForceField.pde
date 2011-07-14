@@ -41,19 +41,36 @@ class ForceField extends Particle
         particles.remove(p);
     }
     void apply () {
-        Particle p;
-        PVector delta;
+        // Particle p;
+        // PVector delta;
+        // for (int i = 0; i < particles.size(); i++) {
+        //     p = particles.get(i);
+        //     delta = new PVector(this.position.x, this.position.y, this.position.z);
+        //     delta.sub(p.position);
+        //     float d = delta.mag();
+        //     if (d > 100 && d < radius) {
+        //         // calculate force
+        //         float s = pow(d / radius, 1 / ramp);
+        //         float f = s * strength * (1 / (s + 1) + ((s - 3) / 4)) / d;
+        //         delta.mult(f);
+        //         p.velocity.add(delta);
+        //     }
+        // }
+        
         for (int i = 0; i < particles.size(); i++) {
+            Particle p;
+            PVector delta;
             p = particles.get(i);
             delta = new PVector(this.position.x, this.position.y, this.position.z);
             delta.sub(p.position);
             float d = delta.mag();
-            if (d > 0 && d < radius) {
-                // calculate force
-                float s = pow(d / radius, 1 / ramp);
-                float f = s * strength * (1 / (s + 1) + ((s - 3) / 4)) / d;
-                delta.mult(f);
-                p.velocity.add(delta);
+            float sign = strength / strength;
+            if (sign == 1) {
+                // attract
+                delta.mult(0.1);
+                p.velocity.set(delta);
+            } else {
+                // avoid
             }
         }
     }

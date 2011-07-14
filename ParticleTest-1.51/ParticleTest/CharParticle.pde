@@ -127,7 +127,7 @@ class CharParticle extends Particle
                 renderer = (GLGraphics)g;
                 renderer.beginGL();
                 renderer.translate(x, y, z);
-                if (!used) {
+                if (true) {
                     float angle = atan2(y - height / 2, x - width / 2);
                     renderer.rotate(angle);
                     renderer.rotate(-HALF_PI);

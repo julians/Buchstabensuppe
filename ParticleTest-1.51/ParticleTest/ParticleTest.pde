@@ -16,12 +16,6 @@ import java.nio.IntBuffer;
 import javax.media.opengl.*;
 import netP5.*;
 import oscP5.*;
-import processing.opengl.*;
-import processing.serial.*;
-
-Serial myPort;
-int pusher;
-boolean arduino = false;
 
 AudioInput microphone;
 AudioPlayer sample;
@@ -81,12 +75,6 @@ public void setup()
     }
     frameRate(30);
     hint(ENABLE_OPENGL_4X_SMOOTH);
- 
-    // Arduino
-    if (arduino) {
-        String portName = Serial.list()[0];
-        myPort = new Serial(this, portName, 9600);        
-    }
     
     // OSC
     oscP5 = new OscP5(this,12000);
@@ -111,7 +99,9 @@ public void setup()
     light = new PVector(0.5, 0.5);
     
     // Zweites Fenster für die Slider in 2D
-    controlFrame = new PFrame(this);
+    // controlFrame = new PFrame(this);
+    // Font für Statusanzeige
+    // controlWindow.textFont(createFont("Courier", 12));
     
     // STT
     stt = new STT(this, false);
@@ -122,9 +112,6 @@ public void setup()
     // Font für geomerative
     RG.init(this);
     font = new RFont("UbuntuTitling-Bold.ttf", 32, RFont.CENTER);
-    
-    // Font für Statusanzeige
-    controlWindow.textFont(createFont("Courier", 12));
     
     // Minim
     initMinim();
@@ -167,111 +154,32 @@ public void setup()
         gl.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL.GL_RGBA, tex.width, tex.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, IntBuffer.wrap(pix));
     }
     
-    Ani.to(cam, 10.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
+    Ani.to(cam, 1.0, "theCameraZ", 1000, Ani.CUBIC_IN_OUT);
 }
 
 /////////////////////////////////////////////////
 
 public void draw() {
-    
-    // Arduino schauen ob der Taster gedrückt wird
-    if (arduino) {
-        if ( myPort.available() > 0) pusher = myPort.read();
-        if (pusher == 0) stt.end(); else stt.begin();        
-    }
-
     background(0);
-    
-    // // OpenGL Motion Blur
-    // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
-    // GL gl = pgl.beginGL();
-    // gl.glEnable( GL.GL_BLEND );
-    // 
-    // fadeToColor(gl, 0, 0, 0, 0.05);
-    // 
-    // gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE);
-    // gl.glDisable(GL.GL_BLEND);
-    // pgl.endGL();
     
     // Partikelsystem
     if (showParticles) {
-        if (applyShaders) {
-            // Postprocessing Filter, der so tut als wenn Licht hinter den Buchstaben wäre und diese überstrahlt
-            canvas.beginDraw();
-                // Die alten Pixel durch transparente ersetzen, sodass der Hintergrund sichtbar bleibt
-                cubeshader.start();
-                    canvas.clear(0);
-                    canvas.background(0);
-                    
-                    // Lichter
-                    ambient(0, 0, 250);
-                    directionalLight(175, 189, 255, 0.5, 0.5, 1);
-                    pointLight(255, 255, 255, cam.position()[0], cam.position()[1], cam.position()[2]);
-                    // Kamera
-                    cam.dolly(dollyStep);
-                    cam.feed();
-                        
-                    // Partikelsystem zeichnen
-                    cloud.updateAndDraw(canvas);
-
-                cubeshader.stop();
-            canvas.endDraw();
-
-            vertexShader.start();
-                vertexShader.setFloatUniform("exposure", exposure);
-                vertexShader.setFloatUniform("decay", decay);
-                vertexShader.setFloatUniform("density", density);
-                vertexShader.setFloatUniform("weight", weight);
-                vertexShader.setVecUniform("lightPositionOnScreen", light.x, light.y);
-                image(canvas.getTexture(), 0, 0, width, height);
-            vertexShader.stop();
+         cubeshader.start();
+            cubeshader.setFloatUniform("RefractionIndex", 0.5);    
+            cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
+            cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
+            cubeshader.setFloatUniform("Roughness", 0.5);
+            cubeshader.setFloatUniform("SpecularIntensity", 1.0);
+         
+            GLGraphics renderer = (GLGraphics)g;
+            renderer.ambient(0, 0, 250);
+            renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
+            // renderer.pointLight(255, 255, 255, 100, 100, 100);
             
-        } else {
-            // CubeShader
-            // cubeshader.start();
-            //     cubeshader.setFloatUniform("RefractionIndex", 0.5);    
-            //     cubeshader.setVecUniform("SpecularColour", 1.0, 1.0, 1.0);
-            //     cubeshader.setVecUniform("LightPos", 1.0, 1.0, 1.0);
-            //     cubeshader.setFloatUniform("Roughness", 0.5);
-            //     cubeshader.setFloatUniform("SpecularIntensity", 1.0);
-                
-                GLGraphics renderer = (GLGraphics)g;
-                renderer.ambient(0, 0, 250);
-                renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
-                // renderer.pointLight(255, 255, 255, 100, 100, 100);
-                
-                cam.dolly(dollyStep);
-                cam.feed();
-                cloud.updateAndDraw();
-            // cubeshader.stop();  
-            
-            // // Glossy
-            // glossyShader.start();
-            //     glossyShader.setVecUniform("AmbientColour", 0.836, 0.85, 1);
-            //     glossyShader.setFloatUniform("AmbientIntensity", 1.0);
-            //     glossyShader.setVecUniform("DiffuseColour", 0.63, 1.0, 1.0);
-            //     glossyShader.setFloatUniform("DiffuseIntensity", 0.43);
-            //     glossyShader.setVecUniform("LightPos", 1.0, 0.5, 0.35);
-            //     glossyShader.setFloatUniform("Roughness", 0.5);
-            //     glossyShader.setFloatUniform("Sharpness", 0.0);
-            //     glossyShader.setVecUniform("SpecularColour", 0.0, 1.0, 1.0);
-            //     glossyShader.setFloatUniform("SpecularIntensity", 0.5);
-            //     
-            //     // draw
-            //     GLGraphics renderer = (GLGraphics)g;
-            //     // renderer.ambient(0, 0, 250);
-            //     // renderer.directionalLight(175, 189, 255, 0.5, 0.5, 1);
-            //     // renderer.pointLight(255, 255, 255, 100, 100, 100);
-            //     
-            //     cam.dolly(dollyStep);
-            //     cam.feed();
-            //     cloud.updateAndDraw();
-            //     renderer.translate(mouseX, mouseY, 0);
-            //     renderer.sphere(100);
-            //     
-            // glossyShader.stop();
-                
-        }
+            cam.dolly(dollyStep);
+            cam.feed();
+            cloud.updateAndDraw();
+         cubeshader.stop();      
     }  
         
     // Statusanzeigen mit FPS, Anzahl der Partikel
@@ -388,6 +296,8 @@ void oscEvent(OscMessage theOscMessage) {
         else if (theOscMessage.addrPattern() == "/mrmr/accelerometer/8/Aaaqw") {
             light.y = value;
         }
+    } else if (theOscMessage.addrPattern() == "arduino") {
+        if (theOscMessage.get(0).intValue() == 0) stt.end(); else stt.begin();
     }
 }
 
