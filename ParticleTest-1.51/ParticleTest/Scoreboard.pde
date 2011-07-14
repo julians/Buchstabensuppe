@@ -109,7 +109,7 @@ class Scoreboard
         */
         pushMatrix();
         translate(width/2, height/2);
-        rotate(radians(this.rotation+180));
+        rotate(radians(this.rotation));
         for (int i = 0; i < this.ngrams.size(); i++) {
             NGramDisplay ngramDisplay = (NGramDisplay) this.ngrams.get(i);
             ngramDisplay.draw();
