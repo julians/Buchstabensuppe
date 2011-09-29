@@ -80,7 +80,7 @@ public class CharCloud extends ParticleSystem
         for (int i = 0; i < particles.size(); i++) {
             if (particles.get(i) instanceof CharParticle) {
                 CharParticle p = (CharParticle) particles.get(i);
-                if (!p.used) {
+                if (true) {
                     updateAndDrawParticle(p);
                 }
             }

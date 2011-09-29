@@ -123,7 +123,7 @@ public void setup()
     stt = new STT(this, false);
     stt.enableDebug();
     stt.setLanguage("de");
-    stt.disableAutoRecord();
+    stt.enableAutoRecord();
     
     // Font für geomerative
     RG.init(this);
@@ -245,7 +245,7 @@ public void draw() {
             //    popMatrix();
             //glossyShader.stop();
         lights();      
-        cloud.drawWords();
+        // cloud.drawWords();
         pushMatrix();
         translate(0, 0, 250);
         scoreboard.draw();
