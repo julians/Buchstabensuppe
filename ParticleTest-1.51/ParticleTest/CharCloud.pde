@@ -5,8 +5,10 @@ public class CharCloud extends ParticleSystem
     int letterspacing = 0;
     HashMap<String, GLModel> modelCache;
     int mode = CharParticle.OBJMODEL;
-    int maxWords = 6;
+    int maxWords = 5;
     Scoreboard scoreboard;
+    ArrayList wordsToAdd;
+    ArrayList wordsToRemove;
     
     OBJModel model;
     GLModel glmodel;
@@ -15,12 +17,18 @@ public class CharCloud extends ParticleSystem
         super(p5, max);
         this.scoreboard = scoreboard;
         // this.scoreboard.registerCharCloud(this);
+        this.wordsToAdd = new ArrayList();
+        this.wordsToRemove = new ArrayList();
         words = new HashMap<String, Word>();
         modelCache = new HashMap<String, GLModel>(26);
         init();
     }
     
     public void addWord (String s) {
+        this.wordsToAdd.add(s);
+    }
+    
+    public void _addWord (String s) {
         println(s);
         println(words.size());
         if (words.containsKey(s)) {
@@ -70,6 +78,9 @@ public class CharCloud extends ParticleSystem
         return word;
     }
     public void removeWord (String s) {
+        this.wordsToRemove.add(s);
+    }
+    public void _removeWord (String s) {
         Word word = words.get(s);
         word.dissolve();
         words.remove(s);
@@ -93,6 +104,24 @@ public class CharCloud extends ParticleSystem
             Map.Entry pairs = (Map.Entry) it.next();
             //println(((Word) pairs.getValue()).z);
             if (((Word) pairs.getValue()).z < 100) removeWord((String) pairs.getKey());
+        }
+        this.cleanUpWords();
+    }
+    
+    void cleanUpWords() {
+        if (this.wordsToRemove.size() > 0) {
+            for (int i = 0; i < this.wordsToRemove.size(); i++) {
+                String s = (String) this.wordsToRemove.get(i);
+                this._removeWord(s);
+            }
+            this.wordsToRemove.clear();
+        }
+        if (this.wordsToAdd.size() > 0) {
+            for (int i = 0; i < this.wordsToAdd.size(); i++) {
+                String s = (String) this.wordsToAdd.get(i);
+                this._addWord(s);
+            }
+            this.wordsToAdd.clear();
         }
     }
     
