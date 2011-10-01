@@ -86,7 +86,7 @@ public class Word extends Particle
             if (useForces) {
                 for (int i = 0; i < forces.size(); i++) {
                     ForceField f = forces.get(i);
-                    QVector2D v = new QVector2D(0, -1);
+                    QVector2D v = new QVector2D(0, 1);
                     if (label) {
                         v.mult(this.ngramDisplay.getLastMagnitude());
                     } else {
