@@ -4,6 +4,7 @@ html, body {
     margin: 0;
     color: #666;
     font-family: Constantia, Georgia, serif;
+    text-rendering: optimizeLegibility;
 }
 
 #wrapper {
