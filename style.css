@@ -136,7 +136,13 @@ h3 {
 
 .photoStack .photo.framed {
     background: #fafafa;
+    padding: 5px;
+    border: solid 1px #ddd;
     box-shadow: 0 5px 10px hsla(0, 0%, 0%, 0.3);
+}
+
+.photoStack .photo.framed img {
+    border: solid 1px #eee;
 }
 
 footer {
