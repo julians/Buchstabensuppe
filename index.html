@@ -38,14 +38,23 @@
                 </p>
                 
                 <div class="photoStack">
-                    <div class="photo" style="width: 680px; height: 502px;">
-                        <img src="photos/1.png" width="680" height="502">
+                    <div class="photo framed" style="width: 800px; height: 533px;">                                 
+                        <img src="photos/stack-dome/2.jpg" width="800" height="533">
                     </div>
-                    <div class="photo" style="width: 680px; height: 502px;">                                 
-                        <img src="photos/2.png" width="680" height="502">
-                    </div> 
-                    <div class="photo" style="width: 680px; height: 502px;">
-                        <img src="photos/3.png" width="680" height="502">
+                    <div class="photo framed" style="width: 800px; height: 450px;">
+                        <img src="photos/stack-dome/1.jpg" width="800" height="450">
+                    </div>
+                    <div class="photo framed" style="width: 800px; height: 450px;">
+                        <img src="photos/stack-dome/5.jpg" width="800" height="450">
+                    </div>
+                    <div class="photo framed" style="width: 800px; height: 450px;">
+                        <img src="photos/stack-dome/3.jpg" width="800" height="450">
+                    </div>
+                    <div class="photo framed" style="width: 800px; height: 450px;">
+                        <img src="photos/stack-dome/6.jpg" width="800" height="450">
+                    </div>
+                    <div class="photo framed" style="width: 800px; height: 450px;">
+                        <img src="photos/stack-dome/4.jpg" width="800" height="450">
                     </div>
                 </div><!-- .photoStack -->
 
@@ -55,6 +64,17 @@
                 <p>
                     Die Installation wurde mit Processing programmiert. Das Programm besteht aus einem Partikelsystem, das Buchstaben entsprechend ihrer Häufigkeit in der deutschen Sprache im Raum verteilt. Graphen dienen zur Darstellung der zeitlichen Veränderung des Wortvorkommens. 
                 </p>
+                <div class="photoStack">
+                    <div class="photo" style="width: 914px; height: 936px;">                                 
+                        <img src="photos/stack-screen/1.png" width="914" height="936">
+                    </div>
+                    <div class="photo" style="width: 914px; height: 936px;">                                 
+                        <img src="photos/stack-screen/2.png" width="914" height="936">
+                    </div>
+                    <div class="photo" style="width: 914px; height: 936px;">                                 
+                        <img src="photos/stack-screen/3.png" width="914" height="936">
+                    </div>
+                </div><!-- .photoStack -->
                 <p>
                     Die Buchstaben wurden als Modelle aus Photoshop exportiert und in Processing geladen. Diese Methode war besser als der Ansatz, die Buchstaben selbst mit Geomerative zu erzeugen. Dank GLGraphics und GLModel konnten wir so mehrere Hundert Buchstaben im Raum darstellen. Die Reflexionen der Buchstaben sind das Ergebnis eines Cubemap-Shaders. Je nach Drehung wird also einfach ein anderer Teil eines texturierten Würfels reflektiert.  
                 </p>
@@ -69,7 +89,7 @@
                 
                 <h3>Spracherkennung</h3>
                 <p>
-                    Google Speech ermöglicht es im Browser Chrome einem Eingabefeld die Möglichkeit der Spracherkennung zuzuweisen. Der Benutzer etwas sagen, was dann an Google gesendet wird. Nach der Analyse erhält der Browser die Transkription als Text. Dieses System haben wir genutzt um daraus eine Library für Processing zu machen. Der Vorteil des Systems ist, dass es nicht auf eine bestimmte Person trainiert werden muss. Die Ergebnisse sind dafür außerordentlich genau. Der Nachteil ist, dass es eine Verzögerung von einigen Sekunden geben kann bis die Antwort zurückkommt.
+                    Google Speech ermöglicht es im Browser Chrome einem Eingabefeld die Möglichkeit der Spracherkennung zuzuweisen. Der Benutzer kann etwas sagen, was dann an Google gesendet wird. Nach der Analyse erhält der Browser die Transkription als Text. Dieses System haben wir genutzt um daraus eine Library für Processing zu machen. Der Vorteil des Systems ist, dass es nicht auf eine bestimmte Person trainiert werden muss. Die Ergebnisse sind dafür außerordentlich genau. Der Nachteil ist, dass es eine Verzögerung von einigen Sekunden geben kann bis die Antwort zurückkommt.
                 </p>
                 <p>
                     Nachdem das Wort erkannt wurde, formieren sich die Buchstaben. Zeitgleich wird ein Graph aus den Daten von Google Ngram generiert.
