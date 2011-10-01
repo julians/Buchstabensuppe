@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Buchstabensuppe</title>
+	<meta name="viewport" content="width=768">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<link rel="stylesheet" href="style.css" type="text/css">
+	<script src="http://use.typekit.com/enp2uxx.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script src="jquery.lettering-0.6.1.min.js"></script>
+    <script src="jquery.fittext.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+    <div id="wrapper">    
+        <div id="top">
+            <p id="byline">
+                Ein Projekt von <a href="http://florianschulz.info/">Florian Schulz</a> und <a href="http://julianstahnke.com/">Julian Stahnke</a>
+            </p>
+            <h1>Buchstabensuppe</h1>
+            
+            <p id="yeahyeah">
+                Buchstabensuppe lässt uns in die Geschichte der Worte eintauchen. Durch die Digitalisierung von über 5 Millionen Büchern können wir erahnen wann ein Wort zum ersten Mal schriftlich festgehalten wurde und wie sich dessen Gebrauch bis heute verändert hat — visualisiert in 360°. 
+            </p>
+        
+            <iframe src="http://player.vimeo.com/video/29850160?title=0&amp;byline=0&amp;portrait=0" width="700" height="394" frameborder="0" webkitAllowFullScreen allowFullScreen></iframe>
+        </div><!-- #top -->
+        <div id="rest">
+            <div class="container">         
+                <p id="intro">
+                    <strong>Sprache ist ein wichtiges Mittel zur Kommunikation mit anderen Menschen. Sie ermöglicht uns nicht nur zu sagen was wir denken, sondern lässt uns besser miteinander interagieren. Doch der Sprachgebrauch verändert sich: Worte reihen sich ein, Wörter verschwinden wieder und dokumentieren so gesellschaftliche und technische Veränderungen. Google Ngram liefert uns die Daten dazu. Doch wie können wir das Leben der Worte visualisieren?</strong>
+                </p>
+                
+                <p>
+                    Im Kurs <em>Immersive Datenvisualisierung</em> unter der Leitung von Prof.&nbsp;Boris&nbsp;Müller haben wir Buchstaben aufsteigen lassen. Sie schweben ungeordnet im Raum der 360° Kuppel der Urania Potsdam. Sie schimmern, zeigen mal mehr, mal weniger ihrer plastischen Gestalt. Auf der Suche nach sinnvoll arrangierten Zeichen ordnen die Zuschauer gedanklich das Chaos. Ein Räuspern, »Hallo?«. Die fünf Buchstaben des Wortes schwirren los. Sie formieren sich und reisen gemeinsam als Wort. Schnell wird klar: Die Kuppel kann uns hören und verstehen. Obendrein versorgt sie uns mit historischen Daten. Jedem Wort wird ein Graph zugeordnet, der darstellt wie häufig das Wort im Zeitraum von 1500—2008 gebraucht wurde. So entsteht in der Kuppel nach und nach ein Abbild der gesprochenen Worte bis sich ihre Bindung irgendwann auflöst.
+                </p>
+                
+                <div class="photoStack">
+                    <div class="photo" style="width: 680px; height: 502px;">
+                        <img src="photos/1.png" width="680" height="502">
+                    </div>
+                    <div class="photo" style="width: 680px; height: 502px;">                                 
+                        <img src="photos/2.png" width="680" height="502">
+                    </div> 
+                    <div class="photo" style="width: 680px; height: 502px;">
+                        <img src="photos/3.png" width="680" height="502">
+                    </div>
+                </div><!-- .photoStack -->
+
+                <h2>So funktioniert’s:</h2>
+
+                <h3>Programm</h3>
+                <p>
+                    Die Installation wurde mit Processing programmiert. Das Programm besteht aus einem Partikelsystem, das Buchstaben entsprechend ihrer Häufigkeit in der deutschen Sprache im Raum verteilt. Graphen dienen zur Darstellung der zeitlichen Veränderung des Wortvorkommens. 
+                </p>
+                <p>
+                    Die Buchstaben wurden als Modelle aus Photoshop exportiert und in Processing geladen. Diese Methode war besser als der Ansatz, die Buchstaben selbst mit Geomerative zu erzeugen. Dank GLGraphics und GLModel konnten wir so mehrere Hundert Buchstaben im Raum darstellen. Die Reflexionen der Buchstaben sind das Ergebnis eines Cubemap-Shaders. Je nach Drehung wird also einfach ein anderer Teil eines texturierten Würfels reflektiert.  
+                </p>
+                <p>
+                    Die Graphen mussten speziell für die Verkrümmung der Kuppel berechnet werden, da wir aus Gründen der Performance nicht die komplette Szene zur Ausgabe verzerren konnten.
+                </p>
+
+                <h3>Daten</h3>
+                <p>
+                    Google Ngram liefert 5 GB Daten zur Verwendung der Wörter. Für jedes Wort gibt es die entsprechenden Häufigkeiten für die Jahre in denen es Bücher gibt, die von Google gescannt wurden.
+                </p>
+                
+                <h3>Spracherkennung</h3>
+                <p>
+                    Google Speech ermöglicht es im Browser Chrome einem Eingabefeld die Möglichkeit der Spracherkennung zuzuweisen. Der Benutzer etwas sagen, was dann an Google gesendet wird. Nach der Analyse erhält der Browser die Transkription als Text. Dieses System haben wir genutzt um daraus eine Library für Processing zu machen. Der Vorteil des Systems ist, dass es nicht auf eine bestimmte Person trainiert werden muss. Die Ergebnisse sind dafür außerordentlich genau. Der Nachteil ist, dass es eine Verzögerung von einigen Sekunden geben kann bis die Antwort zurückkommt.
+                </p>
+                <p>
+                    Nachdem das Wort erkannt wurde, formieren sich die Buchstaben. Zeitgleich wird ein Graph aus den Daten von Google Ngram generiert.
+                </p>
+                
+                <footer>
+                    <p>
+                        Ein Projekt von <a href="http://florianschulz.info/">Florian Schulz</a> und <a href="http://julianstahnke.com/">Julian Stahnke</a>. Entstanden im Sommer 2011 im Studiengang Interfacedesign an der <a href="http://design.fh-potsdam.de/">FH Potsdam</a> in Kooperation mit dem <a href="http://www.urania-planetarium.de/">Urania Planetarium</a> im Kurs <em>Immersive Datenvisualisierungen</em> bei Prof.&nbsp;Boris&nbsp;Müller.
+                    </p>
+                </footer>
+            </div><!-- .container -->
+        </div><!-- #rest -->
+    </div><!-- #wrapper -->
+</body>
+</html>
