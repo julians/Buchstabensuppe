@@ -67,7 +67,7 @@ $(document).ready(function()
                 "visibility": "hidden",
                 "position": "static"
             }).removeClass("photo").addClass("photoDummy");
-            $(photoStack).append(tallest);
+            $(photoStack).prepend(tallest);
             $(photoStack).find("img").removeAttr("width").removeAttr("height");
         });
         $("body").delegate(".photo", "click", photoStackClick);

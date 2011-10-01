@@ -170,6 +170,14 @@ h3 {
     border: solid 1px #ccc;
 }
 
+#rest .photoStack .caption {
+    margin-top: 1.4em;
+    margin-bottom: 0;
+    font-weight: bold;
+    color: #bbb;
+    font-style: italic;
+}
+
 footer {
     border-top: solid 1px #dfdfdf;
     margin-top: 4.2em;
