@@ -104,7 +104,7 @@ function photoStackClick (event)
         cssTransformProps += " scale(1)";
         cssTransformProps += " translate(0, 0)";
         photosInStack[photosInStack.length-1].style[tp] = cssTransformProps;
-    }, 510);
+    }, 490);
 }
 
 function apply3dEffect(element, h, s, l, depth, startDepthL, endDepthL, startLetterShadow, endLetterShadow, direction)
