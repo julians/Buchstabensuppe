@@ -4,6 +4,7 @@ html, body {
     margin: 0;
     color: #666;
     font-family: Constantia, Georgia, serif;
+    text-rendering: optimizeLegibility;
 }
 
 #wrapper {
@@ -82,7 +83,8 @@ h2 {
     font-family: Calibri, sans-serif;
     font-size: 2.8em;
     color: #d5d5d5;
-    margin: 1.4em 0 0.7em 0;
+    margin: 1.4em auto 0.7em auto;
+    max-width: 12.142857em;
 }
 
 h3 {
@@ -91,7 +93,8 @@ h3 {
     font-size: 1.2em;
     font-style: italic;
     color: #999;
-    margin: 0.7em 0 0.35em 0;
+    margin: 0.7em auto 0.35em auto;
+    max-width: 28.333333em;
 }
 
 #top iframe {
@@ -108,40 +111,63 @@ h3 {
     margin: 0 0 1.4em 0;
 }
 
-#intro {
+#rest #intro {
     font-size: 1.2em;
+    max-width: 28.333333em;
     line-height: 1.4em;
     color: #777;
     font-style: italic;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-#rest .container {
-    max-width: 34em;
+#rest {
     font-size: 16px;
     line-height: 1.5em;
     margin: 0 auto;
     padding: 2.1em 0;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 1);
 }
-.photoStack .photo {
+
+#rest p,
+#rest footer {
+    max-width: 34em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.photoStack {
+    width: 80%;
+    margin: 2.1em auto 2.8em auto;
+}
+
+.photoStack .photo,
+.photoStack .photoDummy {
     -webkit-transition-property: -webkit-transform;
     -webkit-transition-duration: 0.5s;
     -webkit-transition-timing-function: ease-in-out;
     -moz-transition-property: -moz-transform;
     -moz-transition-duration: 0.5s;
     -moz-transition-timing-function: ease-in-out;
+    width: 100%;
 }
 
-.photoStack .photo.framed {
+.photoStack .photo img,
+.photoStack .photoDummy img {
+    width: 100%;
+    display: block;
+}
+
+.photoStack .photo.framed,
+.photoStack .photoDummy.framed {
     background: #fafafa;
     padding: 5px;
-    border: solid 1px #ddd;
-    box-shadow: 0 5px 10px hsla(0, 0%, 0%, 0.3);
+    border: solid 1px #ccc;
+    box-shadow: 0 2px 5px hsla(0, 0%, 0%, 0.3);
 }
 
-.photoStack .photo.framed img {
-    border: solid 1px #eee;
+.photoStack .photo.framed img,
+.photoStack .photoDummy.framed img {
+    border: solid 1px #ccc;
 }
 
 footer {

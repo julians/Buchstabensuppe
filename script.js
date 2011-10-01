@@ -37,12 +37,14 @@ $(document).ready(function()
         });
         
         $(".photoStack").each(function (photoStackIndex, photoStack) {
-            var width = 0;
             var height = 0;
+            var tallest = null;
             var photoStackChildren = $(photoStack).children(".photo");
             photoStackChildren.each(function (photoIndex, photo) {
-                if ($(photo).outerHeight() > height) height = $(photo).outerHeight();
-                if ($(photo).outerWidth() > width) width = $(photo).outerWidth();
+                if ($(photo).outerHeight() > height) {
+                    height = $(photo).outerHeight();
+                    tallest = photo;
+                }
                 if (photoIndex > 0) {
                     var c = photoIndex%2 ? "l" : "r"
                     var mult = photoIndex%2 ? 1 : -1;
@@ -57,10 +59,16 @@ $(document).ready(function()
                 });
             });
             $(photoStack).css({
-                "width": width + "px",
-                "height": height + "px",
                 "position": "relative"
             });
+            // dreckig
+            tallest = tallest.cloneNode(true);
+            $(tallest).css({
+                "visibility": "hidden",
+                "position": "static"
+            }).removeClass("photo").addClass("photoDummy");
+            $(photoStack).append(tallest);
+            $(photoStack).find("img").removeAttr("width").removeAttr("height");
         });
         $("body").delegate(".photo", "click", photoStackClick);
     }
