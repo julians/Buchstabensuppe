@@ -140,7 +140,8 @@ h3 {
     margin: 2.1em auto 2.8em auto;
 }
 
-.photoStack .photo {
+.photoStack .photo,
+.photoStack .photoDummy {
     -webkit-transition-property: -webkit-transform;
     -webkit-transition-duration: 0.5s;
     -webkit-transition-timing-function: ease-in-out;
@@ -150,19 +151,22 @@ h3 {
     width: 100%;
 }
 
-.photoStack .photo img {
+.photoStack .photo img,
+.photoStack .photoDummy img {
     width: 100%;
     display: block;
 }
 
-.photoStack .photo.framed {
+.photoStack .photo.framed,
+.photoStack .photoDummy.framed {
     background: #fafafa;
     padding: 5px;
     border: solid 1px #ccc;
     box-shadow: 0 2px 5px hsla(0, 0%, 0%, 0.3);
 }
 
-.photoStack .photo.framed img {
+.photoStack .photo.framed img,
+.photoStack .photoDummy.framed img {
     border: solid 1px #ccc;
 }
 

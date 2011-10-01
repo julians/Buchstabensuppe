@@ -66,7 +66,7 @@ $(document).ready(function()
             $(tallest).css({
                 "visibility": "hidden",
                 "position": "static"
-            });
+            }).removeClass("photo").addClass("photoDummy");
             $(photoStack).append(tallest);
             $(photoStack).find("img").removeAttr("width").removeAttr("height");
         });
