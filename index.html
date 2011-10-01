@@ -65,7 +65,7 @@
 
                 <h3>Programm</h3>
                 <p>
-                    Die Installation wurde mit Processing programmiert. Das Programm besteht aus einem Partikelsystem, das Buchstaben entsprechend ihrer Häufigkeit in der deutschen Sprache im Raum verteilt. Graphen dienen zur Darstellung der zeitlichen Veränderung des Wortvorkommens. 
+                    Die Installation wurde mit <a href="http://processing.org/" title="Processing.org">Processing</a> programmiert. Das Programm besteht aus einem Partikelsystem, das Buchstaben entsprechend ihrer Häufigkeit in der deutschen Sprache im Raum verteilt. Graphen dienen zur Darstellung der zeitlichen Veränderung des Wortvorkommens. 
                 </p>
                 <div class="photoStack" style="max-width: 914px;">
                     <div class="photo" style="max-width: 914px; max-height: 936px;">                                 
@@ -82,7 +82,7 @@
                     </p>
                 </div>
                 <p>
-                    Die Buchstaben wurden als Modelle aus Photoshop exportiert und in Processing geladen. Diese Methode war besser als der Ansatz, die Buchstaben selbst mit Geomerative zu erzeugen. Dank GLGraphics und GLModel konnten wir so mehrere Hundert Buchstaben im Raum darstellen. Die Reflexionen der Buchstaben sind das Ergebnis eines Cubemap-Shaders. Je nach Drehung wird also einfach ein anderer Teil eines texturierten Würfels reflektiert.  
+                    Die Buchstaben wurden als Modelle aus Photoshop exportiert und in Processing geladen. Diese Methode war besser als der Ansatz, die Buchstaben selbst mit <a href="http://www.ricardmarxer.com/geomerative/" title="Geomerative Library für Processing">Geomerative</a> zu erzeugen. Dank <a href="http://glgraphics.sourceforge.net/" title="GLGraphics Library für Processing">GLGraphics</a> und GLModel konnten wir so mehrere Hundert Buchstaben im Raum darstellen. Die Reflexionen der Buchstaben sind das Ergebnis eines Cubemap-Shaders. Je nach Drehung wird also einfach ein anderer Teil eines texturierten Würfels reflektiert.  
                 </p>
 
                 <p>
@@ -112,12 +112,12 @@
 
                 <h3>Daten</h3>
                 <p>
-                    Google Ngram liefert 5 GB Daten zur Verwendung der Wörter. Für jedes Wort gibt es die entsprechenden Häufigkeiten für die Jahre in denen es Bücher gibt, die von Google gescannt wurden.
+                    <a href="http://ngrams.googlelabs.com/" title="Google Ngram Viewer">Google Ngram</a> liefert 5 GB Daten zur Verwendung der Wörter. Für jedes Wort gibt es die entsprechenden Häufigkeiten für die Jahre in denen es Bücher gibt, die von Google gescannt wurden.
                 </p>
                 
                 <h3>Spracherkennung</h3>
                 <p>
-                    Google Speech ermöglicht es im Browser Chrome einem Eingabefeld die Möglichkeit der Spracherkennung zuzuweisen. Der Benutzer kann etwas sagen, was dann an Google gesendet wird. Nach der Analyse erhält der Browser die Transkription als Text. Dieses System haben wir genutzt um daraus eine Library für Processing zu machen. Der Vorteil des Systems ist, dass es nicht auf eine bestimmte Person trainiert werden muss. Die Ergebnisse sind dafür außerordentlich genau. Der Nachteil ist, dass es eine Verzögerung von einigen Sekunden geben kann bis die Antwort zurückkommt.
+                    Die <a href="http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html" title="Speech Input API Specification">HTML5 Speech Input API</a> ermöglicht es im Browser Google Chrome einem Eingabefeld die Möglichkeit der Spracherkennung zuzuweisen. Der Benutzer kann etwas sagen, was dann an Google gesendet wird. Nach der Analyse erhält der Browser die Transkription als Text. Dieses System haben wir genutzt um daraus die <a href="http://stt.getflourish.com/" title="Speech to Text Library für Processing">STT Library</a> für Processing zu machen. Der Vorteil des Systems ist, dass es nicht auf eine bestimmte Person trainiert werden muss. Die Ergebnisse sind dafür außerordentlich genau. Der Nachteil ist, dass es eine Verzögerung von einigen Sekunden geben kann bis die Antwort zurückkommt.
                 </p>
                 <p>
                     Nachdem das Wort erkannt wurde, formieren sich die Buchstaben. Zeitgleich wird ein Graph aus den Daten von Google Ngram generiert.
