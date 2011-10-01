@@ -102,6 +102,10 @@ h3 {
     margin: 2em 0;
 }
 
+.center {
+    text-align: center;
+}
+
 #rest {
     box-shadow:  0 -1px 5px black, 0 -5px 100px rgba(200, 200, 200, 0.2);
     border-top: solid 1px #fff;
