@@ -64,6 +64,13 @@
                     </p>
                 </div>
                 
+                <div class="video" style="width: 600px;">
+                    <iframe src="http://player.vimeo.com/video/29908624?title=0&amp;byline=0&amp;portrait=0" width="600" height="429" frameborder="0" webkitAllowFullScreen allowFullScreen></iframe>
+                </div>
+                <p class="caption">
+                    Wir haben die Buchstaben sogar hüpfen lassen!
+                </p>
+                
                 <div class="photoStack" style="max-width: 590px;">
                     <div class="photo" style="max-width: 590px; max-height: 536px;">
                         <img src="photos/partikelsystem-flach/1.png" width="590" height="536">
@@ -104,6 +111,24 @@
                     <div class="photo" style="max-width: 740px; max-height: 551px;">      
                         <img src="photos/partikelsystem-richtig-3d/3.png" width="740" height="551">
                     </div>
+                    <p class="caption">
+                        Frühe Bewegungsstudien im Kuppelsimulator.
+                    </p>
+                </div>
+                
+                <div class="photoStack" style="max-width: 800px;">  
+                    <div class="photo framed" style="max-width: 800px; max-height: 533px;">
+                        <img src="photos/mehr-skizzen/2.jpg" width="800" height="533">
+                    </div>
+                    <div class="photo framed" style="max-width: 800px; max-height: 533px;">
+                        <img src="photos/mehr-skizzen/3.jpg" width="800" height="533">
+                    </div>            
+                    <div class="photo framed" style="max-width: 800px; max-height: 533px;">
+                        <img src="photos/mehr-skizzen/4.jpg" width="800" height="533">
+                    </div>                                                    
+                    <p class="caption">
+                        Skizzen zum Partikelsystem und der Logik hinter der Spracherkennung.
+                    </p>
                 </div>
                 
                 <h3>Shadern und Schämen</h3>
@@ -127,6 +152,9 @@
                     <div class="photo" style="max-width: 590px; max-height: 604px;">     
                         <img src="photos/jetzt-gehts-ab-1/5.png" width="590" height="604">
                     </div>
+                    <p class="caption">
+                        Freie Shader-Experimente. Mal ausprobiert, was man so machen kann.
+                    </p>
                 </div>
                 
                 <div class="photoStack" style="max-width: 740px;">
@@ -151,6 +179,9 @@
                     <div class="photo" style="max-width: 563px; max-height: 578px;">     
                         <img src="photos/jetzt-gehts-ab-2/7.png" width="563" height="578">
                     </div>
+                    <p class="caption">
+                        Die Begeisterung war groß: Bewegungsunschärfe in Echtzeit. Doch zu viel Dynamik ohne Grund. Am Ende blieb ein Cubemap-Shader, der für etwas Reflexionen und schönere Buchstaben sorgt.
+                    </p>
                 </div>
                 
                 <h2>Graphen</h2>
@@ -198,6 +229,23 @@
                     </div> 
                     <p class="caption">
                         Es funktioniert!
+                    </p>
+                </div>
+                
+                <h3>Die Spracherkennung</h3>
+                <p>
+                    Es gibt ein paar Programme und Libraries, die Spracherkennung ermöglichen. Meistens ist das dann aber auf Englisch beschränkt und es gibt so gut wie nichts, was einen freien Wortschatz akzeptiert. Die meisten System benötigen eine Grammatik, also Kommandos auf die sie reagieren. Da das für unsere Idee nicht genug war, kam Google zur Hilfe. Der Browser Google Chrome bietet bereits Spracherkennung als HTML5-Element für Eingabefelder an. Da es allerdings keine offizielle API für die Spracherkennung gibt, mussten wir einige Umwege nehmen. Die Sprache musste manuell aufgezeichnet und encodiert werden, als POST-Request an Google geschickt und das JSON ausgewertet werden. Das war so komplex, dass daraus eine einfache <a href="http://stt.getflourish.com/" title="Speech to text für Processing">Library</a> für Processing wurde.
+                </p>
+                
+                <div class="photoStack" style="max-width: 800px;">
+                    <div class="photo" style="max-width: 582px; max-height: 675px;">
+                        <img src="photos/mehr-skizzen/stt.png" width="582" height="675">
+                    </div>
+                    <div class="photo framed" style="max-width: 800px; max-height: 533px;">
+                        <img src="photos/mehr-skizzen/1.jpg" width="800" height="533">
+                    </div>
+                    <p class="caption">
+                        Die STT-Library.
                     </p>
                 </div>
                 
