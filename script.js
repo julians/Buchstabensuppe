@@ -15,11 +15,15 @@ try {
 
 $(document).ready(function()
 {
-    $("#top h1").fitText();
     $("#byline").fitText(2.8);
-    $("h1").lettering();
+    $("h1 strong").fitText();
+    $("h1 strong").lettering();
     $("#yeahyeah").lettering();
-    apply3dEffect($("h1")[0], 0, 0, 100, 5, false, false, false, false, false);
+    if ($("#makingOf").length) {
+        apply3dEffect($("h1")[0], 0, 0, 100, 5, 0.8, 0.6, 0.15, 0.4, false);
+    } else {
+        apply3dEffect($("h1")[0], 0, 0, 100, 5, false, false, false, false, false);
+    }
     
     var tp = getTransformProperty($("h1")[0]);
     if (tp) {
