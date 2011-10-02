@@ -193,6 +193,10 @@ h3 {
     margin: 2.1em auto 2.8em auto;
 }
 
+.photoStack.stacked .photo {
+    cursor: pointer;
+}
+
 .photoStack .photo,
 .photoStack .photoDummy {
     -webkit-transition-property: -webkit-transform;

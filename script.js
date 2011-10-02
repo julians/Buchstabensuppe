@@ -64,7 +64,7 @@ $(document).ready(function()
             });
             $(photoStack).css({
                 "position": "relative"
-            });
+            }).addClass("stacked");
             // dreckig
             tallest = tallest.cloneNode(true);
             $(tallest).css({
