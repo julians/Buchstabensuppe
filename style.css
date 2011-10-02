@@ -180,6 +180,14 @@ h3 {
     margin-right: auto;
 }
 
+#rest .video {
+    margin: 0 auto 1.4em auto;
+    background: #222;
+    padding: 20px;
+    border: solid 1px #ddd;
+    box-shadow: 0 2px 5px hsla(0, 0%, 0%, 0.3);
+}
+
 .photoStack {
     width: 80%;
     margin: 2.1em auto 2.8em auto;
