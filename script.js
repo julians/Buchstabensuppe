@@ -25,9 +25,17 @@ $(document).ready(function()
         apply3dEffect($("h1")[0], 0, 0, 100, 5, false, false, false, false, false);
     }
     
+    // text shadow AND rotation doesn’t work on Safari >= 6 !?
+    var rotateLetters = true;
+    if (navigator.userAgent.search(/macintosh.*safari/i) != -1 && navigator.userAgent.search(/chrome/i) == -1) {
+        var s = navigator.userAgent.match(/Version\/(\S+)/);
+        if (s && s[1] && parseInt(s[1]) >= 6) {
+            rotateLetters = false;
+        }
+    }
+    
     var tp = getTransformProperty($("h1")[0]);
     if (tp) {
-
         $("h1 span").each(function (index, letter) {
             $(letter).css({
                 "display": "inline-block",
@@ -36,10 +44,11 @@ $(document).ready(function()
                 "left": "0",
                 "z-index": getRandomInt(1, 99)
             });
-            var mult = Math.random() > 0.5 ? 1 : -1;
-            letter.style[tp] = "rotate("+getRandomInt(3, 8)*mult+"deg)";
+            if (rotateLetters) {
+                var mult = Math.random() > 0.5 ? 1 : -1;
+                letter.style[tp] = "rotate("+getRandomInt(3, 8)*mult+"deg)";
+            }
         });
-        
         $(".photoStack").each(function (photoStackIndex, photoStack) {
             var height = 0;
             var tallest = null;
