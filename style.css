@@ -21,6 +21,7 @@ html, body {
     font-weight: bold;
     box-shadow: 0 150px 150px rgba(0, 0, 0, 0.1);
     font-family: Calibri, sans-serif;
+    -webkit-transform: translate3d(0, 0, 0);
 }
 
 #makingOf #top {
@@ -191,6 +192,7 @@ h3 {
 .photoStack {
     width: 80%;
     margin: 2.1em auto 2.8em auto;
+    -webkit-transform: translate3d(0, 0, 0);
 }
 
 .photoStack.stacked .photo {
@@ -199,6 +201,7 @@ h3 {
 
 .photoStack .photo,
 .photoStack .photoDummy {
+    -webkit-transform: translate3d(0, 0, 0);
     -webkit-transition-property: -webkit-transform;
     -webkit-transition-duration: 0.5s;
     -webkit-transition-timing-function: ease-in-out;
